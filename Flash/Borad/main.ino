@@ -1,8 +1,7 @@
-
-//============================UNIROI========================================
-// Comprehensive Experiment
-//=============================================================================
-#include "./IRremote.h"
+//
+//  Main support
+//
+#include ".\IRremote.h"
 //Infrared Remote Control
 
 //==============================
@@ -44,14 +43,14 @@ int control = 150;//PWM control speed
 
 //==============================
 //==============================
-int Left_motor_back=9;       
-int Left_motor_go=8;         
+int Left_motor_back=9;
+int Left_motor_go=8;
 
-int Right_motor_go=6;       
-int Right_motor_back=7;   
+int Right_motor_back=7;
+int Right_motor_go=6;
 
-int Right_motor_en=5;      
-int Left_motor_en=10;   
+int Right_motor_en=5;
+int Left_motor_en=10;
 //==============================
 //Bluetooth protocol related
 //==============================
@@ -62,13 +61,14 @@ boolean startBit  = false;  // Protocol start flag
 String returntemp = ""; // Store return data
 
 /*Set BUZZER port*/
-int BUZZER = 12;             
+int BUZZER = 12;
 
 /*Set Button port*/
 int KEY = 13;
-/*Set right &left LED port*/
-int right_led=4;
+/*Set left and rite LED port*/
 int left_led=3;
+int right_led=4;
+
 
 /*Set Ultrasonic Sensor*/
 int Echo = A1;  // Set Echo port
