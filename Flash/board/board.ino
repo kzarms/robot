@@ -13,6 +13,7 @@ unsigned long last = millis();
 #define back_car    '2'//key back
 #define left_car    '3'//key left
 #define right_car   '4'//key right
+#define test_car    '9'//key test
 #define stop_car    '0'//key stop
 //===============================================
 /*Car running status enumeration*/
@@ -24,7 +25,8 @@ enum {
   enLEFT,
   enRIGHT,
   enTLEFT,
-  enTRIGHT
+  enTRIGHT,
+  enTEST
 } enCarState;
 //==============================
 //==============================
@@ -119,6 +121,7 @@ void setup()
   //Set led as output
   pinMode(left_led, OUTPUT);
   pinMode(right_led, OUTPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
 
   // Set button as input and internal pull-up mode
   pinMode(KEY, INPUT_PULLUP);
@@ -191,8 +194,8 @@ void brake()        //Stop
   digitalWrite(Left_motor_go, LOW);
   digitalWrite(Right_motor_go, LOW);
   digitalWrite(Right_motor_back, LOW);
-  digitalWrite(left_led, HIGH);
-  digitalWrite(right_led, HIGH);
+  digitalWrite(left_led, LOW);
+  digitalWrite(right_led, LOW);
 
 }
 void left()         //Turn left
@@ -259,9 +262,31 @@ void back()         //back off
   analogWrite(Left_motor_go,0);
   analogWrite(Left_motor_back,140);   // PWM--Pulse Width Modulation(0~255) control speed
   digitalWrite(left_led, LOW);
-  digitalWrite(right_led, HIGH);
-  //led();
+  digitalWrite(right_led, LOW);
 }
+void test_run()     // Move forward
+{
+  //digitalWrite(Left_motor_en,HIGH);  // Left motor enable
+  //digitalWrite(Right_motor_en,HIGH);  // Right motor enable
+  // set left motors pair go ahead
+  digitalWrite(Left_motor_go, HIGH);
+  digitalWrite(Left_motor_back, LOW);
+  // right motors pair go ahead
+  digitalWrite(Right_motor_go, HIGH);
+  digitalWrite(Right_motor_back, LOW);
+  //analogWrite(Right_motor_go,210);//PWM--Pulse Width Modulation(0~255). right motor go speed is 255.
+  //analogWrite(Right_motor_back,0);
+
+  //analogWrite(Left_motor_go, 130);//PWM--Pulse Width Modulation(0~255).left motor go speed is 135.
+  //analogWrite(Left_motor_back,0);
+  // LED OFF
+  digitalWrite(left_led, HIGH);
+  digitalWrite(right_led, HIGH);
+  //Set low speed (120) (working)
+  analogWrite(Left_motor_en, 255);
+  analogWrite(Right_motor_en, 255);
+}
+
 void whistle()      //beep sounds
 {
   digitalWrite(BUZZER,HIGH); //sounds
@@ -282,16 +307,16 @@ void Key_Scan(void)
       if (g_modeComunication == 0)// In Infrared remote control
       {
         g_modeComunication = 1; // Switch to Bluetooth remote control
-        //digitalWrite(LED, HIGH); //led lights up
+        digitalWrite(LED_BUILTIN, HIGH);
       }
       else//In  Bluetooth remote control
       {
         g_modeComunication = 0; //Switch to Infrared remote control
-        //digitalWrite(LED, LOW); led lights off
+        digitalWrite(LED_BUILTIN, LOW);
       }
-      digitalWrite(BUZZER,HIGH);		//beep sounds
+      digitalWrite(BUZZER, HIGH);		//beep sounds
       delay(100);//100ms
-      digitalWrite(BUZZER,LOW);		//beep mute
+      digitalWrite(BUZZER, LOW);		//beep mute
       while (!digitalRead(KEY));	//Determine if the button is released or not
     }
     else
@@ -304,6 +329,7 @@ void Bluetooth(void)
 {
   if (newLineReceived)
   {
+    Serial.println(inputString);
     //Determine if mode selection or not
     if (inputString[1] == 'M' && inputString[2] == 'O' && inputString[3] == 'D' && inputString[4] == 'E')
     {
@@ -337,6 +363,7 @@ void Bluetooth(void)
         case left_car:  g_carstate = enLEFT;  break;
         case right_car: g_carstate = enRIGHT; break;
         case stop_car:  g_carstate = enSTOP;  break;
+        case test_car:  g_carstate = enTEST;  break;
         default: g_carstate = enSTOP; break;
       }
       if (inputString[3] == '1')      //Left rotation
@@ -376,6 +403,27 @@ void Bluetooth(void)
     newLineReceived = false;
   }
 }
+//Serial read data
+void serialEvent()
+{
+  while (Serial.available())
+  {
+    incomingByte = Serial.read();   //One byte by one byte reads
+    if (incomingByte == '$')        // '$' means the start of packet
+    {
+      startBit = true;
+    }
+    if (startBit == true)
+    {
+      inputString += (char) incomingByte;     // The received data constitutes a completed packet.
+    }
+    if (incomingByte == '#')        // '#' means the end of packet
+    {
+      newLineReceived = true;
+      startBit = false;
+    }
+  }
+}
 
 //Car running control
 void CarControl()
@@ -391,6 +439,7 @@ void CarControl()
       case enBACK: back(); break;
       case enTLEFT: spin_left(); break;
       case enTRIGHT: spin_right(); break;
+      case enTEST: test_run(); break;
       default: brake(); break;
     }
   }
@@ -570,26 +619,4 @@ void loop()
     }
   }
   CarControl();
-}
-
-//Serial read data
-void serialEvent()
-{
-  while (Serial.available())
-  {
-    incomingByte = Serial.read();   //One byte by one byte reads
-    if (incomingByte == '$')        // '$' means the start of packet
-    {
-      startBit = true;
-    }
-    if (startBit == true)
-    {
-      inputString += (char) incomingByte;     // The received data constitutes a completed packet.
-    }
-    if (incomingByte == '#')        // '#' means the end of packet
-    {
-      newLineReceived = true;
-      startBit = false;
-    }
-  }
 }
