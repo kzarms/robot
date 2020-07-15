@@ -43,7 +43,6 @@ int control = 150;//PWM control speed
 //==============================
 int Left_motor_go=8;
 int Left_motor_back=9;
-
 int Right_motor_go=6;
 int Right_motor_back=7;
 
@@ -52,46 +51,45 @@ int Right_motor_en=5;
 //==============================
 //Bluetooth protocol related
 //==============================
-int incomingByte = 0;       // Store Received Data(byte)
-String inputString = "";         // Store Received Data(String)
-boolean newLineReceived = false; // Previous data end flag
-boolean startBit  = false;  // Protocol start flag
-String returntemp = ""; // Store return data
+int incomingByte = 0;             // Store Received Data(byte)
+String inputString = "";          // Store Received Data(String)
+boolean newLineReceived = false;  // Previous data end flag
+boolean startBit  = false;        // Protocol start flag
+String returntemp = "";           // Store return data
 
 /*Set BUZZER port*/
 int BUZZER = 12;
 
 /*Set Button port*/
 int KEY = 13;
+
 /*Set left and rite LED port*/
 int left_led=3;
 int right_led=4;
 
 /*Set Ultrasonic Sensor*/
-int Echo = A1;  // Set Echo port
-int Trig = A0; // Set Trig port
+int Echo = A1;    // Set Echo port
+int Trig = A0;    // Set Trig port
 int Distance = 0;
+
 /*Line Walking*/
 const int SensorLeft = A3;     	// Set Left Line Walking Infrared sensor port
 const int SensorRight = A2;   	// Set Right Line Walking Infrared sensor port
-
-int SL;    // State of Left Line Walking Infrared sensor
-int SR;    // State of Right Line Walking Infrared sensor
+int SL;                         // State of Left Line Walking Infrared sensor
+int SR;                         // State of Right Line Walking Infrared sensor
 
 /*follow*/
 const int SensorLeft_2 = A5;    // Left Tracking Infrared sensor
 const int SensorRight_2 = A4;   // Right Tracking Infrared sensor
-
-int SL_2;    // State of Left Tracking Infrared sensor
-int SR_2;    // State of Right Tracking Infrared sensor
-
+int SL_2;                       // State of Left Tracking Infrared sensor
+int SR_2;                       // State of Right Tracking Infrared sensor
 
 //State
-int g_carstate = enSTOP; //  1:front 2:back 3:left 4:right 0:stop // State of vehicle running state
-int g_modeSelect = 0;  // 0:remote control mode(default); 1:line walking mode ; 2: obsracle avoidance mode; 3: tracking
-int g_modeComunication = 0; // 0:Infrared remote control 1:Bluetooth remote control
-int g_AllState = 0;  // 0: Busying; 1:Mode selection
-//int g_IRRealse = 0; //Remote control buttons loosen detection
+int g_carstate = enSTOP;        //  1:front 2:back 3:left 4:right 0:stop // State of vehicle running state
+int g_modeSelect = 0;           // 0:remote control mode(default); 1:line walking mode ; 2: obsracle avoidance mode; 3: tracking
+int g_modeComunication = 0;     // 0:Infrared remote control 1:Bluetooth remote control
+int g_AllState = 0;             // 0: Busying; 1:Mode selection
+//int g_IRRealse = 0;           //Remote control buttons loosen detection
 
 
 /*Format string initialization*/
@@ -136,20 +134,24 @@ void setup()
 	// Set Bluetooth baud rate 9600
   Serial.begin(9600);
 
-  digitalWrite(BUZZER, LOW);          //Set beep mute
   digitalWrite(Left_motor_en, HIGH);  // set left motor enable
   digitalWrite(Right_motor_en, HIGH); // set right motor enable
 
   //Initialize state
   g_carstate = enSTOP;    // stop
-  g_modeComunication = 0; // Infrared Remote Control
-  g_modeSelect = 0;       // remote mode
+  g_modeComunication = 1; // Set BT remote countrol as default
+  g_modeSelect = 0;       // remote controle mode
 
   //Initialize Infrared decode
   irrecv.enableIRIn();
   pinMode(RECV_PIN, INPUT_PULLUP);
 
-  printf_begin();
+  // printf_begin();
+
+  //Bip sould - I am loaded!
+  digitalWrite(BUZZER, HIGH);
+  delay(100);
+  digitalWrite(BUZZER, LOW);
 }
 
 void Distance_test()// Measuring front distance

@@ -1,8 +1,7 @@
+#!/usr/bin/env python
 """
 This is the initial module to control the car
 """
-#!/usr/bin/env python
-
 import time
 import serial
 
