@@ -149,7 +149,7 @@ void setup()
   irrecv.enableIRIn();
   pinMode(RECV_PIN, INPUT_PULLUP);
 
-  // printf_begin();
+  printf_begin();
 
   //Bip sould - I am loaded!
   digitalWrite(BUZZER, HIGH);
@@ -290,7 +290,7 @@ void test_run()     // Move forward
 void whistle()      //beep sounds
 {
   digitalWrite(BUZZER,HIGH); //sounds
-  delay(1000);                //delay 2s
+  delay(1000);               //delay 1s
   digitalWrite(BUZZER,LOW);  //mute
 
 }
