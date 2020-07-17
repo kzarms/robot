@@ -28,7 +28,7 @@ int echo = A1;
 int BUZZER = 12;
 
 // Button port
-int KEY = 13;
+int button = 13;
 /*
 //Line Walking
 const int SensorLeft = A3;     	// Set Left Line Walking Infrared sensor port
@@ -93,10 +93,42 @@ void car_fw(int car_speed){
   digitalWrite(rt_motor_bw, LOW);
   // Turn ON the lights
   digitalWrite(lf_led_pair, HIGH);
-  digitalWrite(lf_led_pair, HIGH);
+  digitalWrite(rt_led_pair, HIGH);
   //Set speed
   analogWrite(lf_motor_en, car_speed);
   analogWrite(rt_motor_en, car_speed);
+}
+void car_lf(int car_speed){
+  // Left disable, right enable
+  digitalWrite(lf_motor_en, LOW);
+  digitalWrite(rt_motor_en, HIGH);
+  // Start only right engings forward
+  digitalWrite(lf_motor_fw, LOW);
+  digitalWrite(lf_motor_bw, LOW);
+  digitalWrite(rt_motor_fw, HIGH);
+  digitalWrite(rt_motor_bw, LOW);
+  // Turn ON the lights
+  digitalWrite(lf_led_pair, LOW);
+  digitalWrite(rt_led_pair, HIGH);
+  //Set speed
+  //analogWrite(lf_motor_en, car_speed);
+  analogWrite(rt_motor_en, car_speed);
+}
+void car_rt(int car_speed){
+  // Left disable, right enable
+  digitalWrite(lf_motor_en, HIGH);
+  digitalWrite(rt_motor_en, LOW);
+  // Start only right engings forward
+  digitalWrite(lf_motor_fw, HIGH);
+  digitalWrite(lf_motor_bw, LOW);
+  digitalWrite(rt_motor_fw, LOW);
+  digitalWrite(rt_motor_bw, LOW);
+  // Turn ON the lights
+  digitalWrite(lf_led_pair, HIGH);
+  digitalWrite(rt_led_pair, LOW);
+  //Set speed
+  analogWrite(lf_motor_en, car_speed);
+  //analogWrite(rt_motor_en, car_speed);
 }
 void car_stop(){
   // Both motors stop
@@ -109,7 +141,7 @@ void car_stop(){
   digitalWrite(rt_motor_bw, LOW);
   // Turn OFF the lights
   digitalWrite(lf_led_pair, LOW);
-  digitalWrite(lf_led_pair, LOW);
+  digitalWrite(rt_led_pair, LOW);
 }
 void car_control(String cmd){
   if(cmd.length() == 0){
@@ -141,11 +173,32 @@ void car_control(String cmd){
         Serial.println("Can not crecognice speed. Abort.");
         break;
     }
+  } else if (cmd.startsWith("2")){
+    //Left the car command.
+    Serial.println("Left the car");
+    car_lf(120);
+  } else if (cmd.startsWith("3")){
+    //Left the car command.
+    Serial.println("Right the car");
+    car_rt(120);
   }
   else {
     Serial.println("Wrong command!");
   }
 }
+void beep(int beep_delay){
+  digitalWrite(BUZZER, HIGH);
+  delay(beep_delay);
+  digitalWrite(BUZZER, LOW);
+}
+void chk_button(void){
+  if(!digitalRead(button)){
+      Serial.println("Manual start the car");
+      beep(100);
+      car_fw(185);
+  }
+}
+
 //endregion
 //Initialization
 void setup(){
@@ -173,15 +226,12 @@ void setup(){
   pinMode(BUZZER, OUTPUT);
 
   // Set button as input and internal pull-up mode
-  pinMode(KEY, INPUT_PULLUP);
+  pinMode(button, INPUT_PULLUP);
 
   // Set Bluetooth baud rate 9600
   Serial.begin(9600);
 
-  //Bip sould - I am loaded!
-  digitalWrite(BUZZER, HIGH);
-  delay(100);
-  digitalWrite(BUZZER, LOW);
+  beep(100);
 }
 //Main
 void loop(){
@@ -200,15 +250,23 @@ void loop(){
     SERIAL_STRING = "";
     B_SERIAL_STRING = false;
   }
-
+  //
+  chk_button();
   //Launch every 500ms
-  if (currentMillis - P_MILLIS >= 2000) {
+  if (currentMillis - P_MILLIS >= 100) {
     // save the last time you blinked the LED
     P_MILLIS = currentMillis;
     // Code Execution
-    Serial.print(distance_test());
-    Serial.print("cm");
-    Serial.println();
+    int dst = distance_test();
+    //Less than 15cm
+    if(dst < 25){
+      car_stop();
+      Serial.print(dst);
+      Serial.println("cm");
+    } else {
+      Serial.print(dst);
+      Serial.println("cm");
+    }
   }
 }
 //Run each time after loop
