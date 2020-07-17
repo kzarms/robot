@@ -111,17 +111,38 @@ void car_stop(){
   digitalWrite(lf_led_pair, LOW);
   digitalWrite(lf_led_pair, LOW);
 }
-void car_control(String command){
-  int speed = 200;
-  if(command == "0#"){
+void car_control(String cmd){
+  if(cmd.length() == 0){
+    Serial.println("Empty command");
+    return;
+  }
+  if(cmd.startsWith("0")){
+    //Stop the car command.
     Serial.println("Stop the car");
     car_stop();
   }
-  else if (command == "1#"){
-    Serial.println("Start the car");
-    car_fw(speed);
+  else if (cmd.startsWith("1")){
+    int speed = cmd.substring(1,2).toInt();
+    Serial.println(speed);
+    switch(speed){
+      case 1:
+        Serial.println("Start the car with speed 1");
+        car_fw(120);
+        break;
+      case 2:
+        Serial.println("Start the car with speed 2");
+        car_fw(185);
+        break;
+      case 3:
+        Serial.println("Start the car with speed 3");
+        car_fw(255);
+        break;
+      default:
+        Serial.println("Can not crecognice speed. Abort.");
+        break;
+    }
   }
-  else{
+  else {
     Serial.println("Wrong command!");
   }
 }
