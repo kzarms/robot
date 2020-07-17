@@ -50,42 +50,18 @@ int g_AllState = 0;             // 0: Busying; 1:Mode selection
 //int g_IRRealse = 0;           //Remote control buttons loosen detection
 */
 
-//Initialization
-void setup(){
-  //IR
-  pinMode(ir, INPUT_PULLUP);
-  //Initialize motor drive for output mode
-  pinMode(lf_motor_en, OUTPUT);
-  pinMode(rt_motor_en, OUTPUT);
+//===============================================
+//Logical golbal variables
 
-  pinMode(lf_motor_fw, OUTPUT);
-  pinMode(lf_motor_bw, OUTPUT);
-  pinMode(rt_motor_fw, OUTPUT);
-  pinMode(rt_motor_bw, OUTPUT);
+// A Serial String to hold incoming data
+String SERIAL_STRING = "";
+// whether the string is complete
+bool B_SERIAL_STRING = false;
 
-  //Set led as output
-  pinMode(lf_led_pair, OUTPUT);
-  pinMode(rt_led_pair, OUTPUT);
-  pinMode(LED_BUILTIN, OUTPUT);
-
-
-  // Set Ultrasonic echo port as input and trig as output
-  pinMode(echo, INPUT);
-  pinMode(trig, OUTPUT);
-  // Set buzzer as output
-  pinMode(BUZZER, OUTPUT);
-
-  // Set button as input and internal pull-up mode
-  pinMode(KEY, INPUT_PULLUP);
-
-  // Set Bluetooth baud rate 9600
-  Serial.begin(9600);
-
-  //Bip sould - I am loaded!
-  digitalWrite(BUZZER, HIGH);
-  delay(100);
-  digitalWrite(BUZZER, LOW);
-}
+// Using interlal timer (avoid delay usage)
+unsigned long P_MILLIS = 0;
+//===============================================
+//region functions
 
 // Measuring front distance
 long distance_test(){
@@ -135,12 +111,96 @@ void car_stop(){
   digitalWrite(lf_led_pair, LOW);
   digitalWrite(lf_led_pair, LOW);
 }
+void car_control(String command){
+  int speed = 200;
+  if(command == "0#"){
+    Serial.println("Stop the car");
+    car_stop();
+  }
+  else if (command == "1#"){
+    Serial.println("Start the car");
+    car_fw(speed);
+  }
+  else{
+    Serial.println("Wrong command!");
+  }
+}
+//endregion
+//Initialization
+void setup(){
+  //IR
+  pinMode(ir, INPUT_PULLUP);
+  //Initialize motor drive for output mode
+  pinMode(lf_motor_en, OUTPUT);
+  pinMode(rt_motor_en, OUTPUT);
 
-void loop()
-{
-  Serial.print(distance_test());
-  Serial.print("cm");
-  Serial.println();
+  pinMode(lf_motor_fw, OUTPUT);
+  pinMode(lf_motor_bw, OUTPUT);
+  pinMode(rt_motor_fw, OUTPUT);
+  pinMode(rt_motor_bw, OUTPUT);
 
-  delay(500);
+  //Set led as output
+  pinMode(lf_led_pair, OUTPUT);
+  pinMode(rt_led_pair, OUTPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
+
+
+  // Set Ultrasonic echo port as input and trig as output
+  pinMode(echo, INPUT);
+  pinMode(trig, OUTPUT);
+  // Set buzzer as output
+  pinMode(BUZZER, OUTPUT);
+
+  // Set button as input and internal pull-up mode
+  pinMode(KEY, INPUT_PULLUP);
+
+  // Set Bluetooth baud rate 9600
+  Serial.begin(9600);
+
+  //Bip sould - I am loaded!
+  digitalWrite(BUZZER, HIGH);
+  delay(100);
+  digitalWrite(BUZZER, LOW);
+}
+//Main
+void loop(){
+  // the interval at which you want to blink the LED.
+  unsigned long currentMillis = millis();
+  String cmd;
+  // Check if we have data in the serial
+  if (B_SERIAL_STRING) {
+    //Print data in the screen:
+    cmd = SERIAL_STRING;
+    Serial.println("We got:");
+    Serial.println(cmd);
+    Serial.println("Execute in car_control function");
+    car_control(cmd);
+    // clear the string:
+    SERIAL_STRING = "";
+    B_SERIAL_STRING = false;
+  }
+
+  //Launch every 500ms
+  if (currentMillis - P_MILLIS >= 2000) {
+    // save the last time you blinked the LED
+    P_MILLIS = currentMillis;
+    // Code Execution
+    Serial.print(distance_test());
+    Serial.print("cm");
+    Serial.println();
+  }
+}
+//Run each time after loop
+//If loop has delay - it mpact on the responce
+void serialEvent(){
+  while (Serial.available()){
+    // get the new byte:
+    char inChar = (char)Serial.read();
+    // Add it to the global SERIAL_STRING:
+    SERIAL_STRING += inChar;
+    //If it is the last symbol - set true. Clean in the next cycle
+    if (inChar == '#'){
+      B_SERIAL_STRING = true;
+    }
+  }
 }
