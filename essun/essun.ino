@@ -24,6 +24,10 @@ int rt_led_pair=4;
 int trig = A0;
 int echo = A1;
 
+// IR sensors, left and right
+const int lf_ir = A5;
+const int rt_ir = A4;
+
 // BUZZER port
 int BUZZER = 12;
 
@@ -35,12 +39,6 @@ const int SensorLeft = A3;     	// Set Left Line Walking Infrared sensor port
 const int SensorRight = A2;   	// Set Right Line Walking Infrared sensor port
 int SL;                         // State of Left Line Walking Infrared sensor
 int SR;                         // State of Right Line Walking Infrared sensor
-
-//follow
-const int SensorLeft_2 = A5;    // Left Tracking Infrared sensor
-const int SensorRight_2 = A4;   // Right Tracking Infrared sensor
-int SL_2;                       // State of Left Tracking Infrared sensor
-int SR_2;                       // State of Right Tracking Infrared sensor
 
 //State
 int g_carstate = enSTOP;        //  1:front 2:back 3:left 4:right 0:stop // State of vehicle running state
@@ -73,13 +71,32 @@ long distance_test(){
   digitalWrite(trig, HIGH);
   delayMicroseconds(3);
   digitalWrite(trig, LOW);
-  //read infor from echo pin
+  //read in from echo pin
   duration = pulseIn(echo, HIGH);
   // The speed of sound is 340 m/s or 29 microseconds per centimeter.
   // The ping travels out and back, so to find the distance of the object we
   // take half of the distance travelled.
   // duration/29/2 or duration/58
   return duration / 58;
+}
+// Test IT sensors
+void ir_test(){
+  Serial.print("Left: ");
+  Serial.println(analogRead(lf_ir));
+  Serial.print("Righ: ");
+  Serial.println(analogRead(rt_ir));
+  /*
+  if(digitalRead(lf_ir) == HIGH){
+    Serial.println("Left on");
+  } else {
+    Serial.println("Left off");
+  }
+  if(digitalRead(rt_ir) == HIGH){
+    Serial.println("Right on");
+  } else {
+    Serial.println("Right off");
+  }
+  */
 }
 // Car control functions
 void car_fw(int car_speed){
@@ -198,7 +215,6 @@ void chk_button(void){
       car_fw(185);
   }
 }
-
 //endregion
 //Initialization
 void setup(){
@@ -257,6 +273,7 @@ void loop(){
     // save the last time you blinked the LED
     P_MILLIS = currentMillis;
     // Code Execution
+    ir_test();
     int dst = distance_test();
     //Less than 15cm
     if(dst < 25){
@@ -264,8 +281,8 @@ void loop(){
       Serial.print(dst);
       Serial.println("cm");
     } else {
-      Serial.print(dst);
-      Serial.println("cm");
+      //Serial.print(dst);
+      //Serial.println("cm");
     }
   }
 }
