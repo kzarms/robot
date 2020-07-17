@@ -10,8 +10,16 @@ import serial
 
 #Check number of the COM port after BT paring
 COMPORT = "COM4"
+STOP = "0#"
+FRWD = "13#"
+LEFT = "2#"
+RIGHT = "3#"
+BKWD = "4#"
 
 #region functions
+def send_cmd(ser, cmd):
+    ser.write(cmd.encode('ascii'))
+
 def small_test(comport):
     """ Small test to run forward for 3 secs """
     ser = serial.Serial(comport)
@@ -37,6 +45,7 @@ def small_test(comport):
 #endregion
 #small_test(COMPORT)
 
+ser = serial.Serial(COMPORT)
 
 pygame.init()
 
@@ -53,7 +62,6 @@ car_height = 123
 gameDisplay = pygame.display.set_mode((display_width, display_height))
 pygame.display.set_caption('Remote control')
 clock = pygame.time.Clock()
-
 
 #Car definition
 carImg = pygame.image.load('racecar.png')
@@ -75,10 +83,8 @@ def message_display(text):
     time.sleep(2)
 
     game_loop()
-
 def crash():
     message_display('You Crashed')
-
 def game_loop():
     x = (display_width * 0.45)
     y = (display_height * 0.45)
@@ -97,18 +103,23 @@ def game_loop():
             ############################
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
+                    send_cmd(ser, LEFT)
                     x_change = -5
                 elif event.key == pygame.K_RIGHT:
+                    send_cmd(ser, RIGHT)
                     x_change = 5
                 elif event.key == pygame.K_UP:
+                    send_cmd(ser, FRWD)
                     y_change = -5
                 elif event.key == pygame.K_DOWN:
+                    send_cmd(ser, BKWD)
                     y_change = 5
             if event.type == pygame.KEYUP:
                 if  event.key == pygame.K_LEFT or \
                     event.key == pygame.K_RIGHT or \
                     event.key == pygame.K_UP or \
                     event.key == pygame.K_DOWN:
+                        send_cmd(ser, STOP)
                         x_change = 0
                         y_change = 0
             ############################
@@ -132,6 +143,8 @@ def game_loop():
 
 game_loop()
 pygame.quit()
+
+ser.close()
 quit()
 
 """

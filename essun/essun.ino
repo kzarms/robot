@@ -131,6 +131,22 @@ void car_lf(int car_speed){
   //analogWrite(lf_motor_en, car_speed);
   analogWrite(rt_motor_en, car_speed);
 }
+void car_lf_r(int car_speed){
+  // Both engings are on
+  digitalWrite(lf_motor_en, HIGH);
+  digitalWrite(rt_motor_en, HIGH);
+  // Both engins in reverse
+  digitalWrite(lf_motor_fw, LOW);
+  digitalWrite(lf_motor_bw, HIGH);
+  digitalWrite(rt_motor_fw, HIGH);
+  digitalWrite(rt_motor_bw, LOW);
+  // Turn ON the lights on the side we turn on
+  digitalWrite(lf_led_pair, LOW);
+  digitalWrite(rt_led_pair, HIGH);
+  //Set speed
+  analogWrite(lf_motor_en, car_speed);
+  analogWrite(rt_motor_en, car_speed);
+}
 void car_rt(int car_speed){
   // Left disable, right enable
   digitalWrite(lf_motor_en, HIGH);
@@ -146,6 +162,38 @@ void car_rt(int car_speed){
   //Set speed
   analogWrite(lf_motor_en, car_speed);
   //analogWrite(rt_motor_en, car_speed);
+}
+void car_rt_r(int car_speed){
+  // Both engings are on
+  digitalWrite(lf_motor_en, HIGH);
+  digitalWrite(rt_motor_en, HIGH);
+  // Both engins in reverse
+  digitalWrite(lf_motor_fw, HIGH);
+  digitalWrite(lf_motor_bw, LOW);
+  digitalWrite(rt_motor_fw, LOW);
+  digitalWrite(rt_motor_bw, HIGH);
+  // Turn ON the lights on the side we turn on
+  digitalWrite(lf_led_pair, HIGH);
+  digitalWrite(rt_led_pair, LOW);
+  //Set speed
+  analogWrite(lf_motor_en, car_speed);
+  analogWrite(rt_motor_en, car_speed);
+}
+void car_bw(int car_speed){
+  // Both motor enable
+  digitalWrite(lf_motor_en, HIGH);
+  digitalWrite(rt_motor_en, HIGH);
+  // Start engings forward
+  digitalWrite(lf_motor_fw, LOW);
+  digitalWrite(lf_motor_bw, HIGH);
+  digitalWrite(rt_motor_fw, LOW);
+  digitalWrite(rt_motor_bw, HIGH);
+  // Turn ON the lights
+  digitalWrite(lf_led_pair, HIGH);
+  digitalWrite(rt_led_pair, HIGH);
+  //Set speed
+  analogWrite(lf_motor_en, car_speed);
+  analogWrite(rt_motor_en, car_speed);
 }
 void car_stop(){
   // Both motors stop
@@ -193,11 +241,15 @@ void car_control(String cmd){
   } else if (cmd.startsWith("2")){
     //Left the car command.
     Serial.println("Left the car");
-    car_lf(120);
+    car_lf_r(150);
   } else if (cmd.startsWith("3")){
     //Left the car command.
     Serial.println("Right the car");
-    car_rt(120);
+    car_rt_r(150);
+  } else if (cmd.startsWith("4")){
+    //Left the car command.
+    Serial.println("Back the car");
+    car_bw(150);
   }
   else {
     Serial.println("Wrong command!");

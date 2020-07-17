@@ -142,7 +142,7 @@ void setup()
 
   //Initialize state
   g_carstate = enSTOP;    // stop
-  g_modeComunication = 1; // Set BT remote countrol as default
+  g_modeComunication = 0; // Set IR remote countrol as default
   g_modeSelect = 0;       // remote controle mode
 
   //Initialize Infrared decode
