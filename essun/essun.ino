@@ -51,6 +51,14 @@ int g_AllState = 0;             // 0: Busying; 1:Mode selection
 //===============================================
 //Logical golbal variables
 
+// Car movement
+//Current car speed (left and right)
+int LEFT = 0;
+int RIGHT = 0;
+//New car sppeed received
+int  dLEFT = 0;
+int  dRIGHT = 0;
+
 // A Serial String to hold incoming data
 String SERIAL_STRING = "";
 // whether the string is complete
@@ -65,9 +73,9 @@ unsigned long P_MILLIS = 0;
 long distance_test(){
   //Define internal vars
   long duration, distance;
-  //Make a short impuls OFF - ON 5μs -OFF
+  //Make a short impuls OFF - ON  -OFF
   digitalWrite(trig, LOW);
-  delayMicroseconds(2);
+  //delayMicroseconds(2);
   digitalWrite(trig, HIGH);
   delayMicroseconds(3);
   digitalWrite(trig, LOW);
@@ -79,26 +87,8 @@ long distance_test(){
   // duration/29/2 or duration/58
   return duration / 58;
 }
-// Test IT sensors
-void ir_test(){
-  Serial.print("Left: ");
-  Serial.println(analogRead(lf_ir));
-  Serial.print("Righ: ");
-  Serial.println(analogRead(rt_ir));
-  /*
-  if(digitalRead(lf_ir) == HIGH){
-    Serial.println("Left on");
-  } else {
-    Serial.println("Left off");
-  }
-  if(digitalRead(rt_ir) == HIGH){
-    Serial.println("Right on");
-  } else {
-    Serial.println("Right off");
-  }
-  */
-}
 // Car control functions
+/*
 void car_fw(int car_speed){
   // Both motor enable
   digitalWrite(lf_motor_en, HIGH);
@@ -255,6 +245,62 @@ void car_control(String cmd){
     Serial.println("Wrong command!");
   }
 }
+*/
+void car_move(int left, int right){
+  // left and right are -9 .. +9
+  int leftSpeed = 0;
+  int rightSpeed = 0;
+  //Check values for the left side
+  if(left == 0){
+    //Left side is stop
+    digitalWrite(lf_motor_en, LOW);
+    digitalWrite(lf_motor_fw, LOW);
+    digitalWrite(lf_motor_bw, LOW);
+    digitalWrite(lf_led_pair, LOW);
+  } else if (left > 0){
+    //moving forward on the left side
+    digitalWrite(lf_motor_fw, HIGH);
+    digitalWrite(lf_motor_bw, LOW);
+    //calculate speed forward
+    leftSpeed = map(left, 1, 9, 100, 255);
+    analogWrite(lf_motor_en, leftSpeed);
+    digitalWrite(lf_led_pair, HIGH);
+  } else {
+    digitalWrite(lf_motor_fw, LOW);
+    digitalWrite(lf_motor_bw, HIGH);
+    //calculate speed forward
+    leftSpeed = map((-1 * left), 1, 9, 100, 255);
+    analogWrite(lf_motor_en, leftSpeed);
+    digitalWrite(lf_led_pair, HIGH);
+  }
+  // Check values for the right side
+  if(right == 0){
+    //Left side is stop
+    digitalWrite(rt_motor_en, LOW);
+    digitalWrite(rt_motor_fw, LOW);
+    digitalWrite(rt_motor_bw, LOW);
+    digitalWrite(rt_led_pair, LOW);
+  } else if (right > 0){
+    //moving forward on the left side
+    digitalWrite(rt_motor_fw, HIGH);
+    digitalWrite(rt_motor_bw, LOW);
+    //calculate speed forward
+    rightSpeed = map(right, 1, 9, 100, 255);
+    analogWrite(rt_motor_en, rightSpeed);
+    digitalWrite(rt_led_pair, HIGH);
+  } else {
+    digitalWrite(rt_motor_fw, LOW);
+    digitalWrite(rt_motor_bw, HIGH);
+    //calculate speed and set PWM
+    rightSpeed = map((-1 * right), 1, 9, 100, 255);
+    analogWrite(rt_motor_en, rightSpeed);
+    digitalWrite(rt_led_pair, HIGH);
+  }
+  Serial.print("Left speed is: ");
+  Serial.println(left);
+  Serial.print("Right speed is: ");
+  Serial.println(right);
+}
 void beep(int beep_delay){
   digitalWrite(BUZZER, HIGH);
   delay(beep_delay);
@@ -264,7 +310,7 @@ void chk_button(void){
   if(!digitalRead(button)){
       Serial.println("Manual start the car");
       beep(100);
-      car_fw(185);
+      //car_fw(185);
   }
 }
 //endregion
@@ -300,41 +346,65 @@ void setup(){
   Serial.begin(9600);
 
   beep(100);
+
+  Serial.println("Rady to go!");
 }
 //Main
 void loop(){
   // the interval at which you want to blink the LED.
   unsigned long currentMillis = millis();
-  String cmd;
   // Check if we have data in the serial
   if (B_SERIAL_STRING) {
     //Print data in the screen:
-    cmd = SERIAL_STRING;
     Serial.println("We got:");
-    Serial.println(cmd);
-    Serial.println("Execute in car_control function");
-    car_control(cmd);
+    Serial.println(SERIAL_STRING);
+    int sep = SERIAL_STRING.indexOf(',');
+    // Save values into temp
+    dLEFT = SERIAL_STRING.substring(0, sep).toInt();
+    dRIGHT = SERIAL_STRING.substring((sep + 1), (SERIAL_STRING.length() - 1)).toInt();
     // clear the string:
     SERIAL_STRING = "";
     B_SERIAL_STRING = false;
   }
+  if(LEFT != dLEFT || RIGHT != dRIGHT){
+    //Move the car with new values
+    Serial.println("Execute in car_move function");
+    car_move(dLEFT, dRIGHT);
+    LEFT = dLEFT;
+    RIGHT = dRIGHT;
+  }
   //
   chk_button();
-  //Launch every 500ms
-  if (currentMillis - P_MILLIS >= 100) {
-    // save the last time you blinked the LED
-    P_MILLIS = currentMillis;
-    // Code Execution
-    ir_test();
-    int dst = distance_test();
-    //Less than 15cm
-    if(dst < 25){
-      car_stop();
-      Serial.print(dst);
-      Serial.println("cm");
-    } else {
-      //Serial.print(dst);
-      //Serial.println("cm");
+
+  //sensivity = max(abs(LEFT), abs(LEFT));
+  //only if car moving
+  if(LEFT != 0 || RIGHT != 0){
+    //calculate duration in miliseconds
+    //find max of abs values form current speed
+    int duration = map((max(abs(LEFT), abs(LEFT))), 1, 9, 200, 20);
+    int distance = map((max(abs(LEFT), abs(LEFT))), 1, 9, 10, 35);
+    //Launch every 100ms
+    if ((currentMillis - P_MILLIS) >= duration) {
+      Serial.println("Duration is ");
+      Serial.println(duration);
+      Serial.println("Max distance is ");
+      Serial.println(distance);
+      P_MILLIS = currentMillis;
+      // Code Execution
+      int dst = distance_test();
+      //Less than 15cm
+      if(dst < distance){
+        dLEFT = 0;
+        dRIGHT = 0;
+        car_move(dLEFT, dRIGHT);
+        LEFT = dLEFT;
+        RIGHT = dRIGHT;
+        Serial.println("Emergency stop at ");
+        Serial.println(dst);
+      } else {
+        //Serial.print(dst);
+        //Serial.println("cm");
+      }
     }
   }
 }
