@@ -7,13 +7,7 @@ import pygame
 import serial
 
 # Check number of the COM port after BT paring
-COMPORT = 'COM4'
-STOP = '0#'
-FRWD = '13#'
-LEFT = '2#'
-RIGHT = '3#'
-BKWD = '4#'
-
+COMPORT = 'COM3'
 # region functions
 
 
@@ -21,23 +15,18 @@ def send_cmd(ser, cmd):
     """Send command to serial."""
     ser.write(cmd.encode('ascii'))
 
-
 def small_test(comport):
     """Small test to run forward for 3 secs."""
     local_ser = serial.Serial(comport)
-    start = '11#'
-    left = '2#'
-    right = '3#'
-    stop = '0#'
     local_delay = 1.5
     # Run the car
-    local_ser.write(start.encode('ascii'))
+    send_cmd(local_ser, "1,1#")
     time.sleep(local_delay)
-    local_ser.write(left.encode('ascii'))
+    send_cmd(local_ser, "3,4#")
     time.sleep(local_delay)
-    local_ser.write(right.encode('ascii'))
+    send_cmd(local_ser, "-1,2#")
     time.sleep(local_delay)
-    local_ser.write(stop.encode('ascii'))
+    send_cmd(local_ser, "0,0#")
     # Close the com port
     local_ser.close()
 
@@ -65,7 +54,11 @@ pygame.display.set_caption('Remote control')
 clock = pygame.time.Clock()
 
 # Car definition
-carImg = pygame.image.load('racecar.png')
+# carImg = pygame.image.load('racecar.jpg')
+
+
+def things(thingx, thingy, thingw, thingh, color):
+    pygame.draw.rect(gameDisplay, color, [thingx, thingy, thingw, thingh])
 
 
 def car(x, y):
@@ -82,9 +75,9 @@ def text_objects(text, font):
 
 def message_display(text):
     """The test show function."""
-    largeText = pygame.font.Font('freesansbold.ttf', 25)
+    largeText = pygame.font.Font('freesansbold.ttf', 14)
     TextSurf, TextRect = text_objects(text, largeText)
-    TextRect.center = ((display_width/2),(display_height/2))
+    TextRect.center = (30, 10)
     gameDisplay.blit(TextSurf, TextRect)
 
     pygame.display.update()
@@ -110,7 +103,8 @@ def game_loop():
 
     x = (display_width * center_position)
     y = (display_height * center_position)
-    
+    car_x = 0
+    car_y = 0
 
     gameExit = False
 
@@ -123,29 +117,45 @@ def game_loop():
             ############################
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
-                    send_cmd(ser, LEFT)
                     x_change = -5
+                    car_x += -1
+                    car_y += 1
                 elif event.key == pygame.K_RIGHT:
-                    send_cmd(ser, RIGHT)
                     x_change = 5
+                    car_x += 1
+                    car_y += -1
                 elif event.key == pygame.K_UP:
-                    send_cmd(ser, FRWD)
                     y_change = -5
+                    car_x += 1
+                    car_y += 1
                 elif event.key == pygame.K_DOWN:
-                    send_cmd(ser, BKWD)
+                    car_x += -1
+                    car_y += -1
                     y_change = 5
-
+                elif event.key == pygame.K_SPACE:
+                    x = (display_width * center_position)
+                    y = (display_height * center_position)
+                    car_x = 0
+                    car_y = 0
+                #Send to the car
+                if car_x > 9: car_x = 9
+                if car_x < -9: car_x = -9
+                if car_y > 9: car_y = 9
+                if car_y < -9: car_y = -9
+                send_cmd(ser, (str(car_x) +',' + str(car_y) + '#'))
             if event.type == pygame.KEYUP:
                 if  event.key == pygame.K_LEFT or \
                     event.key == pygame.K_RIGHT or \
                     event.key == pygame.K_UP or \
                     event.key == pygame.K_DOWN:
-                        send_cmd(ser, STOP)
+                        #send_cmd(ser, "0,0#")
                         x_change = 0
                         y_change = 0
             ############################
+
         x += x_change
         y += y_change
+        msg = "X: " + str(x) + " Y: " + str(y)
 
         if x > (display_width * border_b):
             x = (display_width * border_b)
@@ -155,17 +165,21 @@ def game_loop():
             y = (display_height * border_b)
         if y < (display_height * border_a):
             y = (display_height * border_a)
+
         gameDisplay.fill(white)
-        car(x, y)
+        things(x, y, 25, 25, black)
+
+        #car(x, y)
+
         #    crash()
 
         pygame.display.update()
         clock.tick(set_timer)
 
 game_loop()
+ser.close()
 pygame.quit()
 
-ser.close()
 quit()
 
 """
