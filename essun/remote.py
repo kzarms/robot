@@ -5,9 +5,17 @@ import time
 
 import pygame
 import serial
+from serial import Serial
 
 # Check number of the COM port after BT paring
 COMPORT = 'COM3'
+COMPORT = '/dev/rfcomm0'
+
+ser = serial.Serial('/dev/rfcomm0')  # open serial port
+>>> print(ser.name)         # check which port was really used
+>>> ser.write(b'hello')     # write a string
+>>> ser.close()             # close port
+
 # region functions
 
 
