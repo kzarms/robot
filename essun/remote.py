@@ -118,12 +118,16 @@ def game_loop():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
                     x_change = -5
-                    car_x += -1
                     car_y += 1
+                    #if difference less than 4 make it
+                    if abs(car_x - car_y) < 4:
+                        car_x += -1
                 elif event.key == pygame.K_RIGHT:
                     x_change = 5
                     car_x += 1
-                    car_y += -1
+                    #if difference less than 4 make it
+                    if abs(car_x - car_y) < 4:
+                        car_y += -1
                 elif event.key == pygame.K_UP:
                     y_change = -5
                     car_x += 1
@@ -137,7 +141,7 @@ def game_loop():
                     y = (display_height * center_position)
                     car_x = 0
                     car_y = 0
-                #Send to the car
+                #Set maximum to the sending, no more then 9
                 if car_x > 9: car_x = 9
                 if car_x < -9: car_x = -9
                 if car_y > 9: car_y = 9
