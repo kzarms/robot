@@ -3,6 +3,7 @@
 
 import RPi.GPIO as GPIO
 import time
+import keyboard
 
 # Set Control pin
 lf_motor_en = 17
@@ -84,21 +85,27 @@ def carMove(speedLeft, speedRight):
         # Set speed
         rt_speed.ChangeDutyCycle(speedRight * -1)
 
-
 # Test on
 print("Start testing")
-carMove(50, 50)
-time.sleep(1)
-carMove(50, 0)
-time.sleep(1)
-carMove(0, 50)
-time.sleep(1)
-carMove(-50, -50)
-time.sleep(1)
-carMove(0, 0)
+# carMove(50, 50)
+#time.sleep(1)
+#carMove(50, 0)
+#time.sleep(1)
+#carMove(0, 50)
+#time.sleep(1)
+#carMove(-50, -50)
+#time.sleep(1)
+#carMove(0, 0)
+
+keyboard.add_hotkey('up', carMove(50, 50))
+keyboard.add_hotkey('left', carMove(50, 0))
+keyboard.add_hotkey('right', carMove(0, 50))
+keyboard.add_hotkey('down', carMove(0, 0))
+
+print("Press ESC to stop.")
+keyboard.wait('esc')
 
 print("Stop testing")
-
 # End of the programm
 lf_speed.stop()
 rt_speed.stop()
