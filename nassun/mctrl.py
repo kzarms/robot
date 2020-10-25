@@ -89,10 +89,10 @@ def car_fw():
     carMove(50, 50)
 
 def car_lf():
-    carMove(50, 0)
+    carMove(0, 50)
 
 def car_rt():
-    carMove(0, 50)
+    carMove(50, 0)
 
 def car_bw():
     carMove(-50, -50)
