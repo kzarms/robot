@@ -85,6 +85,20 @@ def carMove(speedLeft, speedRight):
         # Set speed
         rt_speed.ChangeDutyCycle(speedRight * -1)
 
+def car_fw():
+    carMove(50, 50)
+
+def car_lf():
+    carMove(50, 0)
+
+def car_rt():
+    carMove(0, 50)
+
+def car_bw():
+    carMove(-50, -50)
+
+def car_st():
+    carMove(0, 0)
 # Test on
 print("Start testing")
 # carMove(50, 50)
@@ -97,10 +111,11 @@ print("Start testing")
 #time.sleep(1)
 #carMove(0, 0)
 
-keyboard.add_hotkey('up', carMove(50, 50))
-keyboard.add_hotkey('left', carMove(50, 0))
-keyboard.add_hotkey('right', carMove(0, 50))
-keyboard.add_hotkey('down', carMove(0, 0))
+keyboard.add_hotkey('up', car_fw)
+keyboard.add_hotkey('left', car_lf)
+keyboard.add_hotkey('right', car_rt)
+keyboard.add_hotkey('down', car_bw)
+keyboard.add_hotkey('space', car_st)
 
 print("Press ESC to stop.")
 keyboard.wait('esc')
