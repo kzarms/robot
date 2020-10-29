@@ -18,6 +18,7 @@ PAGE="""\
 <body>
 <center><h1>Robot Nassun</h1></center>
 <center><img src="stream.mjpg" width="640" height="480"></center>
+<p> <button type="submit1">LED 1</button> </p>
 </body>
 </html>
 """
