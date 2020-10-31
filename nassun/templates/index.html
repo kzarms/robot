@@ -1,14 +1,38 @@
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script type=text/javascript>
+        $(function() {
+          $("#up, #down, #left, #right, #stop").on("click", function(e) {
+            e.preventDefault();
+            $.ajax({
+              type: "GET",
+              url: "/cmd",
+              timeout:10,
+              data: {
+                id: $(this).attr('id')
+              }                 
+            });
+          });
+        });
+</script>
+
 <html>
   <head>
     <title>{{title}}</title>
   </head>
   <body>
     <center><h1>{{title}}</h1></center>
-    <center><img src="{{ url_for('video_feed') }}"></center>
-    <form method="post" action="/">
-      <input type="submit" name="up" value="UP">
-      <input type="submit" name="down" value="DOWN">
-    </form>
+    <div class="control">
+      <form>
+          <a href=# id=up><button class='btn btn-default'>Up</button></a>
+          <a href=# id=down><button class='btn btn-default'>Down</button></a>
+          <a href=# id=left><button class='btn btn-default'>Left</button></a>
+          <a href=# id=right><button class='btn btn-default'>Right</button></a>
+          <a href=# id=stop><button class='btn btn-default'>Stop</button></a>
+      </form>
+  </div>
+  <div class="video">
+      <center><img src="/video_feed"></center>
+  </div>
     <center><h3>The date and time on the server is: {{time}}</h3></center>
   </body>
 </html>

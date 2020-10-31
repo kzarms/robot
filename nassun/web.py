@@ -35,6 +35,18 @@ def gen(camera):
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
+@app.route('/cmd', methods=['GET', 'POST'])
+def control():
+    print("Control!")
+    command = request.args.get('id')
+    if command == 'up':
+        print("Going up!")
+    elif command == 'down':
+        print("Going down")
+    else:
+        print("Wrong command, ignore!")    
+    return "Nothing"
+
 @app.route('/video_feed')
 def video_feed():
     return Response(gen(VideoCamera()),
