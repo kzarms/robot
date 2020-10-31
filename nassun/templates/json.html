@@ -1,22 +1,32 @@
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 <script type=text/javascript>
         $(function() {
-          $('a#test').bind('click', function() {
-            $.getJSON('/background_process_test',
-                function(data) {
-              //do nothing
-            });
-        return false;
+          $("#up, #down, #left, #right, #stop").on("click", function(e) {
+            e.preventDefault();
+            $.ajax({
+              type: "GET",
+              url: "/control",
+              data: {
+                id: $(this).attr('id')
+              },
+          success:function(result) {
+          //alert("ok");
+          },
+          error:function(result) {
+            alert('error');
+          }
+        });
       });
     });
 </script>
 
-
-//button
 <div class='container'>
 <h3>Test</h3>
     <form>
-        <a href=# id=test><button class='btn btn-default'>Test</button></a>
+        <a href=# id=up><button class='btn btn-default'>Up</button></a>
+        <a href=# id=down><button class='btn btn-default'>Down</button></a>
+        <a href=# id=left><button class='btn btn-default'>Left</button></a>
+        <a href=# id=right><button class='btn btn-default'>Right</button></a>
+        <a href=# id=stop><button class='btn btn-default'>Stop</button></a>
     </form>
-
 </div>
