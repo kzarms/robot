@@ -6,24 +6,24 @@ import datetime
 
 app = Flask(__name__)
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    print(request.data)
+    # print(request.form.validate_on_submit())
+    # pippo =  request.args.getlist('name[]')
     now = datetime.datetime.now()
     timeString = now.strftime("%Y-%m-%d %H:%M")
     #
+    print(request)
+    print(request.method)
+    print(request.form.to_dict())
     if request.method == 'POST':
-        print(request.method)
-        print(request.form.to_dict())
-        if request.form.get('Up') == 'Up':
-            # pass
-            print("Encrypted")
-        elif  request.form.get('Down') == 'Down':
-            # pass # do something else
-            print("Decrypted")
+        rDic = request.form.to_dict()
+        if 'up' in rDic:
+            print("Got up")
+        elif 'down' in rDic:
+            print("Got down") 
         else:
-            # pass # unknown
-            print("None of them!")            
+            print("Got wrong") 
     elif request.method == 'GET':
         # return render_template("index.html")
         print("No Post Back Call")
