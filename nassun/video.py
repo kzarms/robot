@@ -125,6 +125,27 @@ PAGE="""\
             });
           });
         });
+    document.onkeydown = function (evt) {
+    var keyCode = evt ? (evt.which ? evt.which : evt.keyCode) : event.keyCode;
+    if (keyCode == 38) {
+      document.getElementById('up').click();
+    }
+    if (keyCode == 40) {
+      document.getElementById('down').click();
+    }
+    if (keyCode == 37) {
+      document.getElementById('left').click();
+    }
+    if (keyCode == 39) {
+      document.getElementById('right').click();
+    }
+    if (keyCode == 32) {
+      document.getElementById('stop').click();
+    }
+    else {
+      return true;
+    }
+};
 </script>
 <html>
     <head>
@@ -132,13 +153,13 @@ PAGE="""\
     </head>
     <body>
         <center><h1>Robot Nassun</h1></center>
-         <form>
-          <a href=# id=up><button class='btn btn-default'>Up</button></a>
-          <a href=# id=down><button class='btn btn-default'>Down</button></a>
-          <a href=# id=left><button class='btn btn-default'>Left</button></a>
-          <a href=# id=right><button class='btn btn-default'>Right</button></a>
-          <a href=# id=stop><button class='btn btn-default'>Stop</button></a>
-      </form>
+         <center><form>
+            <a href=# id=up><button class='btn btn-default'>Up</button></a>
+            <a href=# id=down><button class='btn btn-default'>Down</button></a>
+            <a href=# id=left><button class='btn btn-default'>Left</button></a>
+            <a href=# id=right><button class='btn btn-default'>Right</button></a>
+            <a href=# id=stop><button class='btn btn-default'>Stop</button></a>
+        </form></center>
         <center><img src="stream.mjpg" width="640" height="480"></center>
     </body>
 </html>
