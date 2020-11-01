@@ -71,11 +71,17 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.end_headers()
         elif '/cmd' in self.path:
             print("Command from the code!")
-            cmd = .split('=')[1]
-            if cmd = 'up':
+            cmd = self.path.split('=')[1]
+            if cmd == 'up':
                 print("Going up!")
             elif cmd == 'donw':
                 print("Going down!")
+            elif cmd == 'left':
+                print("Going <-")
+            elif cmd == 'right':
+                print("Going ->!")
+            elif cmd == 'stop':
+                print("STOP")
             else:
                 print("Command is not recognized!")
             self.send_response(200)
