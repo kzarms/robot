@@ -63,13 +63,21 @@ class StreamingOutput(object):
         return self.buffer.write(buf)
 
 class StreamingHandler(server.BaseHTTPRequestHandler):
-    def do_GET(self):
+    def do_GET(self):        
+        print(self.path)
         if self.path == '/':
             self.send_response(301)
             self.send_header('Location', '/index.html')
             self.end_headers()
-        elif self.path == '/cmd':
+        elif '/cmd' in self.path:
             print("Command from the code!")
+            cmd = .split('=')[1]
+            if cmd = 'up':
+                print("Going up!")
+            elif cmd == 'donw':
+                print("Going down!")
+            else:
+                print("Command is not recognized!")
             self.send_response(200)
         elif self.path == '/index.html':
             content = PAGE.encode('utf-8')
