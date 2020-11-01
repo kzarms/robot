@@ -9,6 +9,105 @@ import logging
 import socketserver
 from threading import Condition
 from http import server
+import RPi.GPIO as GPIO
+
+#===============================================================================================================
+# Set Control pin
+lf_motor_en = 17
+lf_motor_fw = 27
+lf_motor_bw = 22
+
+rt_motor_en = 23
+rt_motor_fw = 25
+rt_motor_bw = 24
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(lf_motor_en, GPIO.OUT)
+lf_speed = GPIO.PWM(lf_motor_en, 100)
+lf_speed.start(0)
+GPIO.setup(lf_motor_fw, GPIO.OUT)
+GPIO.setup(lf_motor_bw, GPIO.OUT)
+GPIO.setup(rt_motor_en, GPIO.OUT)
+rt_speed = GPIO.PWM(rt_motor_en, 100)
+rt_speed.start(0)
+GPIO.setup(rt_motor_fw, GPIO.OUT)
+GPIO.setup(rt_motor_bw, GPIO.OUT)
+
+
+def gpioInit():
+    # First init our board
+    print("Left enging stop")
+
+def carMove(speedLeft, speedRight):
+    # Car contol function. +1 +1 - moving forward, 0,1 moving back and so one
+    # Left side
+    if speedLeft == 0:
+        # This is stop function
+        print("Left enging stop")
+        # GPIO.setup(lf_motor_en, GPIO.HIGH)
+        GPIO.output(lf_motor_fw, GPIO.LOW)
+        GPIO.output(lf_motor_bw, GPIO.LOW)
+        GPIO.output(lf_motor_en, GPIO.LOW)
+        lf_speed.ChangeDutyCycle(0)
+    elif speedLeft > 0:
+        # Left
+        print("Left enging moving forward")
+        GPIO.output(lf_motor_fw, GPIO.HIGH)
+        GPIO.output(lf_motor_bw, GPIO.LOW)
+        # GPIO.output(lf_motor_en, GPIO.HIGH)
+        # Set speed
+        lf_speed.ChangeDutyCycle(speedLeft)
+    else:
+        # Right
+        print("Left enging moving backward")
+        GPIO.output(lf_motor_fw, GPIO.LOW)
+        GPIO.output(lf_motor_bw, GPIO.HIGH)
+        # GPIO.output(lf_motor_en, GPIO.HIGH)
+        # Set speed
+        # speedLeft = speedLeft * -1
+        lf_speed.ChangeDutyCycle(speedLeft * -1)
+    # Right side
+    if speedRight == 0:
+        # This is stop function
+        print("Rhgt enging stop")
+        # GPIO.setup(lf_motor_en, GPIO.HIGH)
+        GPIO.output(rt_motor_fw, GPIO.LOW)
+        GPIO.output(rt_motor_bw, GPIO.LOW)
+        GPIO.output(rt_motor_en, GPIO.LOW)
+        rt_speed.ChangeDutyCycle(0)
+    elif speedRight > 0:
+        # Left
+        print("Rhgt enging moving forward")
+        GPIO.output(rt_motor_fw, GPIO.HIGH)
+        GPIO.output(rt_motor_bw, GPIO.LOW)
+        # GPIO.output(lf_motor_en, GPIO.HIGH)
+        # Set speed
+        rt_speed.ChangeDutyCycle(speedRight)
+    else:
+        # Right
+        print("Rhgt enging moving backward")
+        GPIO.output(rt_motor_fw, GPIO.LOW)
+        GPIO.output(rt_motor_bw, GPIO.HIGH)
+        # GPIO.output(lf_motor_en, GPIO.HIGH)
+        # Set speed
+        rt_speed.ChangeDutyCycle(speedRight * -1)
+
+def car_fw():
+    carMove(50, 50)
+
+def car_lf():
+    carMove(0, 50)
+
+def car_rt():
+    carMove(50, 0)
+
+def car_bw():
+    carMove(-50, -50)
+
+def car_st():
+    carMove(0, 0)
+
+#===============================================================================================================
 
 PAGE="""\
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
@@ -73,14 +172,19 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             print("Command from the code!")
             cmd = self.path.split('=')[1]
             if cmd == 'up':
-                print("Going up!")
-            elif cmd == 'donw':
+                car_fw()
+                print("Going up!")                
+            elif cmd == 'down':
+                car_bw()
                 print("Going down!")
             elif cmd == 'left':
+                car_lf()
                 print("Going <-")
             elif cmd == 'right':
+                car_rt()
                 print("Going ->!")
             elif cmd == 'stop':
+                car_st()
                 print("STOP")
             else:
                 print("Command is not recognized!")
