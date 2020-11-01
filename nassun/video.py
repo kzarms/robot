@@ -68,6 +68,9 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.send_response(301)
             self.send_header('Location', '/index.html')
             self.end_headers()
+        elif self.path == '/cmd':
+            print("Command from the code!")
+            self.send_response(200)
         elif self.path == '/index.html':
             content = PAGE.encode('utf-8')
             self.send_response(200)
