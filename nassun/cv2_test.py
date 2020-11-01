@@ -9,7 +9,7 @@ def json():
     return render_template('json.html')
 
 #background process happening without any refreshing
-@app.route('/control', methods=['GET', 'POST'])
+@app.route('/cmd')
 def control():
     # print(request)
     command = request.args.get('id')
