@@ -112,19 +112,18 @@ def car_st():
 PAGE="""\
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 <script type=text/javascript>
-        $(function() {
-          $("#up, #down, #left, #right, #stop").on("click", function(e) {
+    $(function() {
+        $("#up, #down, #left, #right, #stop").on("click", function(e) {
             e.preventDefault();
             $.ajax({
-              type: "GET",
-              url: "/cmd",
-              timeout:10,
-              data: {
-                id: $(this).attr('id')
-              }                 
+                type: "GET",
+                url: "/cmd",
+                data: {
+                    id: $(this).attr('id')
+                }                 
             });
-          });
         });
+    });
     document.onkeydown = function (evt) {
     var keyCode = evt ? (evt.which ? evt.which : evt.keyCode) : event.keyCode;
     if (keyCode == 38) {
