@@ -11,15 +11,37 @@ from threading import Condition
 from http import server
 
 PAGE="""\
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script type=text/javascript>
+        $(function() {
+          $("#up, #down, #left, #right, #stop").on("click", function(e) {
+            e.preventDefault();
+            $.ajax({
+              type: "GET",
+              url: "/cmd",
+              timeout:10,
+              data: {
+                id: $(this).attr('id')
+              }                 
+            });
+          });
+        });
+</script>
 <html>
-<head>
-<title>Robot Nassun</title>
-</head>
-<body>
-<center><h1>Robot Nassun</h1></center>
-<center><img src="stream.mjpg" width="640" height="480"></center>
-<p> <button type="submit1">LED 1</button> </p>
-</body>
+    <head>
+        <title>Robot Nassun</title>
+    </head>
+    <body>
+        <center><h1>Robot Nassun</h1></center>
+         <form>
+          <a href=# id=up><button class='btn btn-default'>Up</button></a>
+          <a href=# id=down><button class='btn btn-default'>Down</button></a>
+          <a href=# id=left><button class='btn btn-default'>Left</button></a>
+          <a href=# id=right><button class='btn btn-default'>Right</button></a>
+          <a href=# id=stop><button class='btn btn-default'>Stop</button></a>
+      </form>
+        <center><img src="stream.mjpg" width="640" height="480"></center>
+    </body>
 </html>
 """
 
