@@ -4,7 +4,9 @@
 # http://picamera.readthedocs.io/en/latest/recipes2.html#web-streaming
 
 import io
-import camera
+#import camera
+import numpy as np
+import cv2
 import logging
 import socketserver
 from threading import Condition
@@ -83,7 +85,26 @@ class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
     allow_reuse_address = True
     daemon_threads = True
 
-with picamera.camera(resolution='640x480', framerate=24) as camera:
+cap = cv2.VideoCapture(0)
+
+while(True):
+    # Capture frame-by-frame
+    ret, frame = cap.read()
+
+    # Our operations on the frame come here
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+    # Display the resulting frame
+    cv2.imshow('frame',gray)
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+# When everything done, release the capture
+cap.release()
+cv2.destroyAllWindows()
+
+'''
+with camera(resolution='640x480', framerate=24) as camera:
     output = StreamingOutput()
     #Uncomment the next line to change your Pi's Camera rotation (in degrees)
     camera.rotation = 180
@@ -94,6 +115,7 @@ with picamera.camera(resolution='640x480', framerate=24) as camera:
         server.serve_forever()
     finally:
         camera.stop_recording()
+'''
 #
 # Start line
 # python3 \nassun\video.py
