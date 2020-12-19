@@ -1,36 +1,39 @@
-int tr1=8;
-int tr2=9;
-int tr3=6;
-int tr4=7;
+//Motor ports
+int motor_en=9;
+int motor_fw=6;
+int motor_bw=7;
 
-void setup(){
-  // Set motor type
-  pinMode(tr1, OUTPUT);
-  pinMode(tr2, OUTPUT);
-  pinMode(tr3, OUTPUT);
-  pinMode(tr4, OUTPUT);
+int car_speed = 0;
 
-  // Turn off all
-  digitalWrite(tr1, LOW);
-  digitalWrite(tr2, LOW);
-  digitalWrite(tr3, HIGH);
-  digitalWrite(tr4, HIGH);
-  // Serial
+void setup() {
+  // initialize serial communication at 9600 bits per second:
   Serial.begin(9600);
-  Serial.println("Rady to go!");
+  pinMode(motor_en, OUTPUT);
+  pinMode(motor_fw, OUTPUT);
+  pinMode(motor_bw, OUTPUT);
 }
-void loop(){
-    // Start workning on
-    // SET 1 and 4 open, 2,3 - close
-    digitalWrite(tr1, HIGH);
-    digitalWrite(tr2, LOW);
-    digitalWrite(tr3, HIGH);
-    digitalWrite(tr4, LOW);
-    delay(1000);
-    // SET 2 and 3 open, 1,4 - close
-    digitalWrite(tr1, LOW);
-    digitalWrite(tr2, HIGH);
-    digitalWrite(tr3, LOW);
-    digitalWrite(tr4, HIGH);
-    delay(1000);
+
+
+// the loop routine runs over and over again forever:
+void loop() {
+  // read the input on analog pin 0:
+  int sensorValue = analogRead(A0);
+  int speedTmp = map(sensorValue,0,1023,0,255);
+  if(car_speed != speedTmp){
+    car_speed = speedTmp;
+    if(car_speed <= 1){
+      digitalWrite(motor_fw, LOW);
+      Serial.println("Sotop");
+    } else {      
+      Serial.println(car_speed);
+      digitalWrite(motor_fw, HIGH);
+      //analogWrite(motor_fw, car_speed);
+      digitalWrite(motor_bw, LOW);
+      //Set speed
+      analogWrite(motor_en, car_speed);
+      //digitalWrite(motor_en, HIGH);
+    }
+    delay(100);
+  } 
+  
 }
