@@ -1,46 +1,125 @@
 //
 //  The 2WD robot ET.
-//  Control via IR
+//  Control via IR and serial port.
 //
-
 //===============================================
+// Play melody on the buzz
 #include "pitches.h"
-//Physical pinout connection
-// IR remote control
-int ir = 2;
-//Motor ports
-int lf_motor_en=10;
-int rt_motor_en=5;
+// Include IR module from DLLs on PS. Afer import in the code.
+#include <IRremote.h>
 
-int lf_motor_fw=8;
-int lf_motor_bw=9;
-int rt_motor_fw=6;
-int rt_motor_bw=7;
+
+// IR remote control, get and store results
+const int RECV_PIN = 2;
+
+// Motor ports
+const int lf_motor_en = 10;
+const int rt_motor_en = 5;
+
+const int lf_motor_fw = 8;
+const int lf_motor_bw = 9;
+const int rt_motor_fw = 6;
+const int rt_motor_bw = 7;
+
+// Led light
+// Head lights
+int lf_head_led = 3;
+int rt_head_led = 4;
 
 // BUZZER port
-int BUZZER = 12;
+const int BUZZER = 12;
+
+// Ultrasonic ports
+//int trig = A0;
+//int echo = A1;
+
+// IR sensors, left and right
+// const int lf_ir = A5;
+// const int rt_ir = A4;
+
+// ===============================================
+// IR init on the global level
+IRrecv irrecv(RECV_PIN);
+decode_results results;
+
+// ===============================================
+// Logical golbal variables
+
+// Robot movement
+// Current robot speed (left and right)
+int LEFT = 0;
+int RIGHT = 0;
+
+// Delta robot sppeed (update)
+int  dLEFT = 0;
+int  dRIGHT = 0;
 
 // A Serial String to hold incoming data
 String SERIAL_STRING = "";
 // whether the string is complete
 bool B_SERIAL_STRING = false;
 
-// notes in the melody:
-int melody[] = {
-  NOTE_C4, NOTE_G3, NOTE_G3, NOTE_A3, NOTE_G3, 0, NOTE_B3, NOTE_C4
-};
-
-// note durations: 4 = quarter note, 8 = eighth note, etc.:
-int noteDurations[] = {
-  4, 8, 8, 4, 4, 4, 4, 4
-};
-
-const int threshold = 10;
-
+// Using interlal timer (avoid delay usage)
+unsigned long P_MILLIS = 0;
+// ===============================================
+// Main move function.
+void move(int left, int right){
+  // left and right are -9 .. +9
+  // calculate it with map from 0..9 to 100..255
+  // Check values for the left side
+  if(left == 0){
+    // left side is stop
+    digitalWrite(lf_motor_en, LOW);
+    digitalWrite(lf_motor_fw, LOW);
+    digitalWrite(lf_motor_bw, LOW);
+    //digitalWrite(lf_led_pair, LOW);
+  } else if (left > 0){
+    // moving forward on the left side
+    digitalWrite(lf_motor_fw, HIGH);
+    digitalWrite(lf_motor_bw, LOW);
+    //calculate speed forward
+    analogWrite(lf_motor_en, map(left, 1, 9, 100, 255));
+    //digitalWrite(lf_led_pair, HIGH);
+  } else {
+    digitalWrite(lf_motor_fw, LOW);
+    digitalWrite(lf_motor_bw, HIGH);
+    //calculate speed forward
+    analogWrite(lf_motor_en, map((-1 * left), 1, 9, 100, 255));
+    //digitalWrite(lf_led_pair, HIGH);
+  }
+  // Check values for the right side
+  if(right == 0){
+    //Left side is stop
+    digitalWrite(rt_motor_en, LOW);
+    digitalWrite(rt_motor_fw, LOW);
+    digitalWrite(rt_motor_bw, LOW);
+    //digitalWrite(rt_led_pair, LOW);
+  } else if (right > 0){
+    //moving forward on the left side
+    digitalWrite(rt_motor_fw, HIGH);
+    digitalWrite(rt_motor_bw, LOW);
+    //calculate speed forward
+    analogWrite(rt_motor_en, map(right, 1, 9, 100, 255));
+    //digitalWrite(rt_led_pair, HIGH);
+  } else {
+    digitalWrite(rt_motor_fw, LOW);
+    digitalWrite(rt_motor_bw, HIGH);
+    //calculate speed and set PWM
+    analogWrite(rt_motor_en, map((-1 * right), 1, 9, 100, 255));
+    //digitalWrite(rt_led_pair, HIGH);
+  }
+  Serial.print("Left speed is: ");
+  Serial.println(left);
+  Serial.print("Right speed is: ");
+  Serial.println(right);
+}
+// ===============================================
+// Initialization
 void setup(){
-  //IR
-  pinMode(ir, INPUT_PULLUP);
-  //Initialize motor drive for output mode
+  // Set serial. Use for direct command set and for BLE
+  Serial.begin(9600);
+  Serial.println("Starting...");
+  // Initialize motor drive for output mode
   pinMode(lf_motor_en, OUTPUT);
   pinMode(rt_motor_en, OUTPUT);
 
@@ -49,72 +128,76 @@ void setup(){
   pinMode(rt_motor_fw, OUTPUT);
   pinMode(rt_motor_bw, OUTPUT);
 
-  // Set Ultrasonic echo port as input and trig as output
-  //pinMode(echo, INPUT);
-  //pinMode(trig, OUTPUT);
+  // Set led as output
+  pinMode(lf_head_led, OUTPUT);
+  pinMode(lf_head_led, OUTPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
+
   // Set buzzer as output
   pinMode(BUZZER, OUTPUT);
 
-  // Set button as input and internal pull-up mode
-  //pinMode(button, INPUT_PULLUP);
-
-  // Set Bluetooth baud rate 9600
-  Serial.begin(9600);
-  Serial.println("Melody!");
-  for (int thisNote = 0; thisNote < 8; thisNote++) {
-    // to calculate the note duration, take one second divided by the note type.
-    //e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc.
-    int noteDuration = 1000 / noteDurations[thisNote];
-    tone(BUZZER, melody[thisNote], noteDuration);
-
-    // to distinguish the notes, set a minimum time between them.
-    // the note's duration + 30% seems to work well:
-    int pauseBetweenNotes = noteDuration * 1.30;
-    delay(pauseBetweenNotes);
-    // stop the tone playing:
-    noTone(BUZZER);
-  }
-
   Serial.println("Rady to go!");
 }
-//Main
-
+// Main
 void loop(){
   // the interval at which you want to blink the LED.
   unsigned long currentMillis = millis();
   // Check if we have data in the serial
-  if(B_SERIAL_STRING){
+  if (B_SERIAL_STRING) {
     //Print data in the screen:
-    Serial.print("We got: ");
+    Serial.println("We got:");
     Serial.println(SERIAL_STRING);
-    // Execute command
-    if(SERIAL_STRING == "f#"){
-      // Move forward
-      Serial.println("Moving forward");
-      digitalWrite(rt_motor_fw, HIGH);
-      digitalWrite(rt_motor_bw, LOW);
-      analogWrite(rt_motor_en, 150);
-    } else if (SERIAL_STRING == "b#"){
-      Serial.println("Moving backward");
-      digitalWrite(rt_motor_fw, LOW);
-      digitalWrite(rt_motor_bw, HIGH);
-      //digitalWrite(rt_motor_en, HIGH);
-      //analogWrite(rt_motor_en, 100);
-    } else if (SERIAL_STRING == "s#"){
-      Serial.println("Stop");
-      digitalWrite(rt_motor_fw, LOW);
-      digitalWrite(rt_motor_bw, LOW);
-      digitalWrite(rt_motor_en, LOW);
-    } else {
-      Serial.println("Command not found. Use f#, b# or s#");
-    }
-
+    int sep = SERIAL_STRING.indexOf(',');
+    // Save values into temp
+    dLEFT = SERIAL_STRING.substring(0, sep).toInt();
+    dRIGHT = SERIAL_STRING.substring((sep + 1), (SERIAL_STRING.length() - 1)).toInt();
     // clear the string:
     SERIAL_STRING = "";
     B_SERIAL_STRING = false;
   }
+  if(LEFT != dLEFT || RIGHT != dRIGHT){
+    // Move motion values are not same. Start moving.
+    Serial.println("Execute the move function");
+    move(dLEFT, dRIGHT);
+    // Set current values in global
+    LEFT = dLEFT;
+    RIGHT = dRIGHT;
+  }
+
+  // only if robot moving
+  if(LEFT != 0 || RIGHT != 0){
+    //calculate duration in miliseconds
+    //find max of abs values form current speed
+    int duration = map((max(abs(LEFT), abs(LEFT))), 1, 9, 200, 20);
+    int distance = map((max(abs(LEFT), abs(LEFT))), 1, 9, 10, 35);
+    //Launch every 100ms
+    if ((currentMillis - P_MILLIS) >= duration) {
+      //Serial.println("Duration is ");
+      //Serial.println(duration);
+      //Serial.println("Max distance is ");
+      //Serial.println(distance);
+      P_MILLIS = currentMillis;
+      // Code Execution
+      //int dst = distance_test();
+      int dst = 1000;
+      //Less than 15cm
+      if(dst < distance){
+        dLEFT = 0;
+        dRIGHT = 0;
+        move(dLEFT, dRIGHT);
+        LEFT = dLEFT;
+        RIGHT = dRIGHT;
+        Serial.println("Emergency stop at ");
+        Serial.println(dst);
+      } else {
+        //Serial.print(dst);
+        //Serial.println("cm");
+      }
+    }
+  }
 }
-//Run each time after loop
+// Run each time after loop
+// If loop has delay - it mpact on the responce
 void serialEvent(){
   while (Serial.available()){
     // get the new byte:
