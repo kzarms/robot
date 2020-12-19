@@ -38,11 +38,6 @@ const int BUZZER = 12;
 // const int rt_ir = A4;
 
 // ===============================================
-// IR init on the global level
-IRrecv irrecv(RECV_PIN);
-decode_results results;
-
-// ===============================================
 // Logical golbal variables
 
 // Robot movement
@@ -61,6 +56,10 @@ bool B_SERIAL_STRING = false;
 
 // Using interlal timer (avoid delay usage)
 unsigned long P_MILLIS = 0;
+// ===============================================
+// IR init on the global level
+IRrecv IrReceiver(RECV_PIN);
+
 // ===============================================
 // Main move function.
 void move(int left, int right){
@@ -119,6 +118,10 @@ void setup(){
   // Set serial. Use for direct command set and for BLE
   Serial.begin(9600);
   Serial.println("Starting...");
+  // Init IR module
+  IrReceiver.enableIRIn();  // Start the receiver
+  IrReceiver.blink13(true); // Enable feedback LED
+
   // Initialize motor drive for output mode
   pinMode(lf_motor_en, OUTPUT);
   pinMode(rt_motor_en, OUTPUT);
@@ -143,7 +146,7 @@ void loop(){
   // the interval at which you want to blink the LED.
   unsigned long currentMillis = millis();
   // Check if we have data in the serial
-  if (B_SERIAL_STRING) {
+  if(B_SERIAL_STRING){
     //Print data in the screen:
     Serial.println("We got:");
     Serial.println(SERIAL_STRING);
@@ -155,8 +158,26 @@ void loop(){
     SERIAL_STRING = "";
     B_SERIAL_STRING = false;
   }
+  if(IrReceiver.decode()){
+    // Get the value from the IR
+    uint32_t tCode = IrReceiver.results.value;
+    Serial.print(tCode, HEX);
+    switch(tCode){
+      //case 0x00FDB04F:  move(0,0); Serial.println("oo"); break; //   0  beep  OFF/ON
+      case 0x00FD8877:  dLEFT += 1; dRIGHT += 1; break;   // up  Advance
+      case 0x00FD28D7:  dLEFT += -1; dRIGHT += 1; break;  // <   Turn left
+      case 0x00FDA857:  dLEFT = 0; dRIGHT = 0; break;     // ok   Stop
+      case 0x00FD6897:  dLEFT += 1; dRIGHT += -1; break;  // >   Turn right
+      case 0x00FD9867:  dLEFT += -1; dRIGHT += -1; break; // dw  Back
+      default: Serial.print(tCode, HEX); break;
+    }
+    // Receive the next value
+    IrReceiver.resume();
+  }
+
+  // move or not
   if(LEFT != dLEFT || RIGHT != dRIGHT){
-    // Move motion values are not same. Start moving.
+    // Move motion values are not same. Correction.
     Serial.println("Execute the move function");
     move(dLEFT, dRIGHT);
     // Set current values in global
@@ -171,7 +192,7 @@ void loop(){
     int duration = map((max(abs(LEFT), abs(LEFT))), 1, 9, 200, 20);
     int distance = map((max(abs(LEFT), abs(LEFT))), 1, 9, 10, 35);
     //Launch every 100ms
-    if ((currentMillis - P_MILLIS) >= duration) {
+    if((currentMillis - P_MILLIS) >= duration){
       //Serial.println("Duration is ");
       //Serial.println(duration);
       //Serial.println("Max distance is ");
@@ -199,13 +220,13 @@ void loop(){
 // Run each time after loop
 // If loop has delay - it mpact on the responce
 void serialEvent(){
-  while (Serial.available()){
+  while(Serial.available()){
     // get the new byte:
     char inChar = (char)Serial.read();
     // Add it to the global SERIAL_STRING:
     SERIAL_STRING += inChar;
     //If it is the last symbol - set true. Clean in the next cycle
-    if (inChar == '#'){
+    if(inChar == '#'){
       B_SERIAL_STRING = true;
     }
   }
