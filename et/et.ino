@@ -60,6 +60,8 @@ bool B_SERIAL_STRING = false;
 // Using interlal timer (avoid delay usage)
 unsigned long P_MILLIS = 0;
 
+// Melody notes
+int notes = 0;
 // ===============================================
 // IR init on the global level
 IRrecv IrReceiver(RECV_PIN);
@@ -144,9 +146,6 @@ void setup(){
   // Set buzzer as output
   pinMode(BUZZER, OUTPUT);
 
-  int notes = sizeof(happy_birthday_to_you) / sizeof(happy_birthday_to_you[0]) / 2;
-  play_melody(happy_birthday_to_you, notes, BUZZER);
-
   Serial.println("Rady to go!");
 }
 // Main
@@ -177,6 +176,13 @@ void loop(){
       case 0x00FDA857:  dLEFT = 0; dRIGHT = 0; break;   // ok   Stop
       case 0x00FD6897:  dLEFT = 1; dRIGHT = -1; break;  // >   Turn right
       case 0x00FD9867:  dLEFT = -1; dRIGHT = -1; break; // dw  Back
+      // Melody play functions
+      // remote control 1
+      case 0x00FD00FF: notes = sizeof(happy_birthday_to_you) / sizeof(happy_birthday_to_you[0]) / 2; play_melody(happy_birthday_to_you, notes, BUZZER); break;
+      // remote control 2
+      case 0x00FD807F: notes = sizeof(we_wish_you_a_merry_christmas) / sizeof(we_wish_you_a_merry_christmas[0]) / 2; play_melody(we_wish_you_a_merry_christmas, notes, BUZZER); break;
+      //case 0x00FD40BF: g_AllState = 1; g_modeSelect = 1;  ModeBEEP(g_modeSelect); break; //3   line walking mode  3
+      //case 0x00FD20DF: g_AllState = 1; g_modeSelect = 3;  ModeBEEP(g_modeSelect); break; //4   tacking mode  4
       default: Serial.println(tCode, HEX); break;
     }
     // Receive the next value
