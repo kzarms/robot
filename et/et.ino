@@ -5,6 +5,7 @@
 //===============================================
 // Play melody on the buzz
 //#include "pitches.h"
+#include "songs.h"
 // Include IR module from DLLs on PS. Afer import in the code.
 #include <IRremote.h>
 
@@ -58,6 +59,7 @@ bool B_SERIAL_STRING = false;
 
 // Using interlal timer (avoid delay usage)
 unsigned long P_MILLIS = 0;
+
 // ===============================================
 // IR init on the global level
 IRrecv IrReceiver(RECV_PIN);
@@ -113,7 +115,8 @@ void move(int left, int right){
   //Serial.println(left);
   //Serial.print("Right speed is: ");
   //Serial.println(right);
-}
+};
+
 // ===============================================
 // Initialization
 void setup(){
@@ -140,6 +143,9 @@ void setup(){
 
   // Set buzzer as output
   pinMode(BUZZER, OUTPUT);
+
+  int notes = sizeof(happy_birthday_to_you) / sizeof(happy_birthday_to_you[0]) / 2;
+  play_melody(happy_birthday_to_you, notes, BUZZER);
 
   Serial.println("Rady to go!");
 }
@@ -171,7 +177,7 @@ void loop(){
       case 0x00FDA857:  dLEFT = 0; dRIGHT = 0; break;   // ok   Stop
       case 0x00FD6897:  dLEFT = 1; dRIGHT = -1; break;  // >   Turn right
       case 0x00FD9867:  dLEFT = -1; dRIGHT = -1; break; // dw  Back
-      default: Serial.print(tCode, HEX); break;
+      default: Serial.println(tCode, HEX); break;
     }
     // Receive the next value
     IrReceiver.resume();
