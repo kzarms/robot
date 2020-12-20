@@ -4,7 +4,7 @@
 //
 //===============================================
 // Play melody on the buzz
-#include "pitches.h"
+//#include "pitches.h"
 // Include IR module from DLLs on PS. Afer import in the code.
 #include <IRremote.h>
 
@@ -13,8 +13,10 @@
 const int RECV_PIN = 2;
 
 // Motor ports
-const int lf_motor_en = 10;
-const int rt_motor_en = 5;
+// After testing, we fount that speed is not relevant. To slow.
+// We will always use 1 on the EN
+//const int lf_motor_en = 10;
+//const int rt_motor_en = 5;
 
 const int lf_motor_fw = 8;
 const int lf_motor_bw = 9;
@@ -68,7 +70,7 @@ void move(int left, int right){
   // Check values for the left side
   if(left == 0){
     // left side is stop
-    digitalWrite(lf_motor_en, LOW);
+    //digitalWrite(lf_motor_en, LOW);
     digitalWrite(lf_motor_fw, LOW);
     digitalWrite(lf_motor_bw, LOW);
     //digitalWrite(lf_led_pair, LOW);
@@ -77,19 +79,19 @@ void move(int left, int right){
     digitalWrite(lf_motor_fw, HIGH);
     digitalWrite(lf_motor_bw, LOW);
     //calculate speed forward
-    analogWrite(lf_motor_en, map(left, 1, 9, 100, 255));
+    //analogWrite(lf_motor_en, map(left, 1, 9, 100, 255));
     //digitalWrite(lf_led_pair, HIGH);
   } else {
     digitalWrite(lf_motor_fw, LOW);
     digitalWrite(lf_motor_bw, HIGH);
     //calculate speed forward
-    analogWrite(lf_motor_en, map((-1 * left), 1, 9, 100, 255));
+    //analogWrite(lf_motor_en, map((-1 * left), 1, 9, 100, 255));
     //digitalWrite(lf_led_pair, HIGH);
   }
   // Check values for the right side
   if(right == 0){
     //Left side is stop
-    digitalWrite(rt_motor_en, LOW);
+    //digitalWrite(rt_motor_en, LOW);
     digitalWrite(rt_motor_fw, LOW);
     digitalWrite(rt_motor_bw, LOW);
     //digitalWrite(rt_led_pair, LOW);
@@ -98,19 +100,19 @@ void move(int left, int right){
     digitalWrite(rt_motor_fw, HIGH);
     digitalWrite(rt_motor_bw, LOW);
     //calculate speed forward
-    analogWrite(rt_motor_en, map(right, 1, 9, 100, 255));
+    //analogWrite(rt_motor_en, map(right, 1, 9, 100, 255));
     //digitalWrite(rt_led_pair, HIGH);
   } else {
     digitalWrite(rt_motor_fw, LOW);
     digitalWrite(rt_motor_bw, HIGH);
     //calculate speed and set PWM
-    analogWrite(rt_motor_en, map((-1 * right), 1, 9, 100, 255));
+    //analogWrite(rt_motor_en, map((-1 * right), 1, 9, 100, 255));
     //digitalWrite(rt_led_pair, HIGH);
   }
-  Serial.print("Left speed is: ");
-  Serial.println(left);
-  Serial.print("Right speed is: ");
-  Serial.println(right);
+  //Serial.print("Left speed is: ");
+  //Serial.println(left);
+  //Serial.print("Right speed is: ");
+  //Serial.println(right);
 }
 // ===============================================
 // Initialization
@@ -123,8 +125,8 @@ void setup(){
   IrReceiver.blink13(true); // Enable feedback LED
 
   // Initialize motor drive for output mode
-  pinMode(lf_motor_en, OUTPUT);
-  pinMode(rt_motor_en, OUTPUT);
+  //pinMode(lf_motor_en, OUTPUT);
+  //pinMode(rt_motor_en, OUTPUT);
 
   pinMode(lf_motor_fw, OUTPUT);
   pinMode(lf_motor_bw, OUTPUT);
@@ -164,11 +166,11 @@ void loop(){
     Serial.print(tCode, HEX);
     switch(tCode){
       //case 0x00FDB04F:  move(0,0); Serial.println("oo"); break; //   0  beep  OFF/ON
-      case 0x00FD8877:  dLEFT += 1; dRIGHT += 1; break;   // up  Advance
-      case 0x00FD28D7:  dLEFT += -1; dRIGHT += 1; break;  // <   Turn left
-      case 0x00FDA857:  dLEFT = 0; dRIGHT = 0; break;     // ok   Stop
-      case 0x00FD6897:  dLEFT += 1; dRIGHT += -1; break;  // >   Turn right
-      case 0x00FD9867:  dLEFT += -1; dRIGHT += -1; break; // dw  Back
+      case 0x00FD8877:  dLEFT = 1; dRIGHT = 1; break;   // up  Advance
+      case 0x00FD28D7:  dLEFT = -1; dRIGHT = 1; break;  // <   Turn left
+      case 0x00FDA857:  dLEFT = 0; dRIGHT = 0; break;   // ok   Stop
+      case 0x00FD6897:  dLEFT = 1; dRIGHT = -1; break;  // >   Turn right
+      case 0x00FD9867:  dLEFT = -1; dRIGHT = -1; break; // dw  Back
       default: Serial.print(tCode, HEX); break;
     }
     // Receive the next value
