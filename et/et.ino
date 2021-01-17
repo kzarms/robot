@@ -15,6 +15,8 @@
 const uint16_t kRecvPin = 5;
 IRrecv irrecv(kRecvPin);
 
+//# define
+
 decode_results results;
 
 void setup() {
