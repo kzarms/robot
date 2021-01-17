@@ -11,7 +11,15 @@
 
 
 // IR remote control, get and store results
-const int RECV_PIN = 2;
+const int RECV_PIN = 0;
+
+// BUZZER port
+const int BUZZER = 1;
+
+// Led light
+// Head lights
+const int lf_head_led = 2;
+const int rt_head_led = 3;
 
 // Motor ports
 // After testing, we fount that speed is not relevant. To slow.
@@ -19,18 +27,10 @@ const int RECV_PIN = 2;
 //const int lf_motor_en = 10;
 //const int rt_motor_en = 5;
 
-const int lf_motor_fw = 8;
-const int lf_motor_bw = 9;
-const int rt_motor_fw = 6;
-const int rt_motor_bw = 7;
-
-// Led light
-// Head lights
-int lf_head_led = 3;
-int rt_head_led = 4;
-
-// BUZZER port
-const int BUZZER = 12;
+const int lf_motor_fw = 7;
+const int lf_motor_bw = 8;
+const int rt_motor_fw = 5;
+const int rt_motor_bw = 6;
 
 // Ultrasonic ports
 //int trig = A0;
@@ -130,13 +130,6 @@ void play_melody(int melody[], int notes, int BUZZER){
   const int onDuration=1000;
   const int periodDuration=6000;
 
-  if (millis()-lastPeriodStart>=periodDuration)
-  {
-    lastPeriodStart+=periodDuration;
-    tone(speakerPin,550, onDuration); // play 550 Hz tone in background for 'onDuration'
-  }
-
-
   for (int thisNote = 0; thisNote < notes * 2; thisNote = thisNote + 2) {
     // calculates the duration of each note
     if(MELODY_PlAY == false){
@@ -154,7 +147,11 @@ void play_melody(int melody[], int notes, int BUZZER){
     // we only play the note for 90% of the duration, leaving 10% as a pause
     tone(BUZZER, melody[thisNote], noteDuration * 0.9);
     // Wait for the specief duration before playing the next note.
-    delay(noteDuration);
+    //delay(noteDuration);
+    if (millis()-lastPeriodStart>=noteDuration) {
+      lastPeriodStart+=noteDuration;
+      //tone(speakerPin,550, onDuration); // play 550 Hz tone in background for 'onDuration'
+    }
     // stop the waveform generation before the next note.
     noTone(BUZZER);
   };
