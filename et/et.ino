@@ -11,14 +11,17 @@
 #include <IRrecv.h>
 #include <IRutils.h>
 
-// ESP8266 GPIO pin to use.
-const uint16_t kRecvPin = 5; // D1
-IRrecv irrecv(kRecvPin);
+// ESP8266 GPIO pins to use.
+const uint16_t RECV_PIN = 5; // D1
+IRrecv irrecv(RECV_PIN);
 decode_results results;
 
+// Speaker
+const uint16_t BUZZER = 4;   // D2
+
 // Head lights
-const uint16_t lf_head_led = 4;   // D2
-const uint16_t rt_head_led = 0;   // D4
+const uint16_t lf_head_led = 0;   // D3
+const uint16_t rt_head_led = 2;   // D4
 
 // Motor ports
 const uint16_t lf_motor_fw = 13;  // D7
@@ -104,10 +107,11 @@ void setup() {
 
     while (!Serial)  // Wait for the serial connection to be establised.
         delay(50);
-
+    tone(BUZZER, 523);
+    delay (1000);
+    noTone(BUZZER);
     Serial.println();
     Serial.print("Rady to go!");
-
 }
 
 void loop() {
@@ -142,7 +146,7 @@ void loop() {
     }
 
     // Commands from the Serial
-    if(B_SERIAL_STRING){
+    if (B_SERIAL_STRING) {
         //Print data in the screen:
         Serial.println("We got:");
         Serial.println(SERIAL_STRING);
@@ -155,7 +159,7 @@ void loop() {
         B_SERIAL_STRING = false;
     }
 
-    if(LEFT != dLEFT || RIGHT != dRIGHT){
+    if (LEFT != dLEFT || RIGHT != dRIGHT) {
         // Move motion values are not same. Correction.
         Serial.println("Execute the move function");
         move(dLEFT, dRIGHT);
