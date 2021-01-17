@@ -87,6 +87,28 @@ void move(int left, int right){
         digitalWrite(rt_motor_bw, HIGH);
     }
 };
+void phrase1(uint16_t speakerPin) {
+    int k = random(1000,2000);
+    for (int i = 0; i <=  random(100,2000); i++){
+        tone(speakerPin, k+(-i*2));
+        delay(random(.9,2));
+    }
+    for (int i = 0; i <= random(100,1000); i++){
+        tone(speakerPin, k + (i * 10));
+        delay(random(.9,2));
+    }
+}
+void phrase2(uint16_t speakerPin) {
+    int k = random(1000,2000);
+    for (int i = 0; i <= random(100,2000); i++){
+        tone(speakerPin, k+(i*2));
+        delay(random(.9,2));
+    }
+    for (int i = 0; i <= random(100,1000); i++){
+        tone(speakerPin, k + (-i * 10));
+        delay(random(.9,2));
+    }
+}
 // ===============================================
 // Execution
 void setup() {
@@ -105,11 +127,16 @@ void setup() {
     // Start the IR receiver
     irrecv.enableIRIn();
 
-    while (!Serial)  // Wait for the serial connection to be establised.
-        delay(50);
-    tone(BUZZER, 523);
-    delay (1000);
+    switch (random(1,7)) {
+        case 1: phrase1(BUZZER); break;
+        case 2: phrase2(BUZZER); break;
+        case 3: phrase1(BUZZER); phrase2(BUZZER); break;
+        case 4: phrase1(BUZZER); phrase2(BUZZER); phrase1(BUZZER);break;
+        case 5: phrase1(BUZZER); phrase2(BUZZER); phrase1(BUZZER); phrase2(BUZZER); phrase1(BUZZER);break;
+        case 6: phrase2(BUZZER); phrase1(BUZZER); phrase2(BUZZER); break;
+    }
     noTone(BUZZER);
+    // Ready to go
     Serial.println();
     Serial.print("Rady to go!");
 }
@@ -133,7 +160,18 @@ void loop() {
             //case 0x00FD00FF: melody_to_play = 1; break;
             // remote control 2
             case 0x00FD807F: digitalWrite(lf_head_led, LOW); break;
-            //case 0x00FD807F: notes = sizeof(we_wish_you_a_merry_christmas) / sizeof(we_wish_you_a_merry_christmas[0]) / 2; play_melody(we_wish_you_a_merry_christmas, notes, BUZZER); break;
+            // Souds
+            case 0x00FD20DF: // 4
+                phrase1(BUZZER);
+                phrase2(BUZZER);
+                noTone(BUZZER);
+                break;
+            case 0x00FDA05F: // 5
+                phrase2(BUZZER);
+                phrase1(BUZZER);
+                phrase2(BUZZER);
+                noTone(BUZZER);
+                break;
             //case 0x00FD40BF: g_AllState = 1; g_modeSelect = 1;  ModeBEEP(g_modeSelect); break; //3   line walking mode  3
             //case 0x00FD20DF: g_AllState = 1; g_modeSelect = 3;  ModeBEEP(g_modeSelect); break; //4   tacking mode  4
             default: Serial.println(tCode, HEX); break;
@@ -159,6 +197,7 @@ void loop() {
         B_SERIAL_STRING = false;
     }
 
+    // Movement
     if (LEFT != dLEFT || RIGHT != dRIGHT) {
         // Move motion values are not same. Correction.
         Serial.println("Execute the move function");
@@ -168,4 +207,3 @@ void loop() {
         RIGHT = dRIGHT;
     }
 }
-
