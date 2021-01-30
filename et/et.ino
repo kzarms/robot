@@ -16,16 +16,16 @@ const uint16_t RECV_PIN = 5; // D1
 IRrecv irrecv(RECV_PIN);
 decode_results results;
 
-// Speaker
-const uint16_t BUZZER = 4;   // D2
-
 // Head lights
-const uint16_t lf_head_led = 0;   // D3
-const uint16_t rt_head_led = 2;   // D4
+const uint16_t lf_head_led = 4;   // D2
+const uint16_t rt_head_led = 0;   // D3
+
+// Speaker
+const uint16_t BUZZER = 2;   // D4
 
 // Motor ports
-const uint16_t lf_motor_fw = 13;  // D7
-const uint16_t lf_motor_bw = 15;  // D8
+const uint16_t lf_motor_fw = 15;  // D8
+const uint16_t lf_motor_bw = 13;  // D7
 const uint16_t rt_motor_fw = 14;  // D5
 const uint16_t rt_motor_bw = 12;  // D6
 
@@ -109,6 +109,13 @@ void phrase2(uint16_t speakerPin) {
         delay(random(.9,2));
     }
 }
+void blink(){
+    digitalWrite(lf_head_led, HIGH);
+    digitalWrite(rt_head_led, HIGH);
+    delay(100);
+    digitalWrite(lf_head_led, LOW);
+    digitalWrite(rt_head_led, LOW);
+}
 // ===============================================
 // Execution
 void setup() {
@@ -116,7 +123,7 @@ void setup() {
     Serial.println("Starting...");
     // Set led as output
     pinMode(lf_head_led, OUTPUT);
-    pinMode(lf_head_led, OUTPUT);
+    pinMode(rt_head_led, OUTPUT);
 
     // Initialize motor drive for output mode
     pinMode(lf_motor_fw, OUTPUT);
@@ -127,15 +134,17 @@ void setup() {
     // Start the IR receiver
     irrecv.enableIRIn();
 
-    switch (random(1,7)) {
-        case 1: phrase1(BUZZER); break;
-        case 2: phrase2(BUZZER); break;
-        case 3: phrase1(BUZZER); phrase2(BUZZER); break;
-        case 4: phrase1(BUZZER); phrase2(BUZZER); phrase1(BUZZER);break;
-        case 5: phrase1(BUZZER); phrase2(BUZZER); phrase1(BUZZER); phrase2(BUZZER); phrase1(BUZZER);break;
-        case 6: phrase2(BUZZER); phrase1(BUZZER); phrase2(BUZZER); break;
-    }
+    //switch (random(1,7)) {
+    //    case 1: phrase1(BUZZER); break;
+    //    case 2: phrase2(BUZZER); break;
+    //    case 3: phrase1(BUZZER); phrase2(BUZZER); break;
+    //    case 4: phrase1(BUZZER); phrase2(BUZZER); phrase1(BUZZER);break;
+    //    case 5: phrase1(BUZZER); phrase2(BUZZER); phrase1(BUZZER); phrase2(BUZZER); phrase1(BUZZER);break;
+    //    case 6: phrase2(BUZZER); phrase1(BUZZER); phrase2(BUZZER); break;
+    //}
+
     noTone(BUZZER);
+    blink();
     // Ready to go
     Serial.println();
     Serial.print("Rady to go!");
@@ -148,18 +157,20 @@ void loop() {
         //Serial.print(tCode, HEX);
         switch(tCode){
             //case 0x00FDB04F:  move(0,0); Serial.println("oo"); break; //   0  beep  OFF/ON
-            case 0x00FD8877:  dLEFT = 1; dRIGHT = 1; break;   // up  Advance
-            case 0x00FD28D7:  dLEFT = -1; dRIGHT = 1; break;  // <   Turn left
-            case 0x00FDA857:  dLEFT = 0; dRIGHT = 0; break;   // ok   Stop
-            case 0x00FD6897:  dLEFT = 1; dRIGHT = -1; break;  // >   Turn right
-            case 0x00FD9867:  dLEFT = -1; dRIGHT = -1; break; // dw  Back
+            case 0x00FD8877:  dLEFT = 1;  dRIGHT = 1;  break;   // up  Advance
+            case 0x00FD28D7:  dLEFT = 0; dRIGHT = 1;  break;    // <   Turn left
+            case 0x00FD30CF:  dLEFT = -1; dRIGHT = 1;  break;   // *   Round left
+            case 0x00FDA857:  dLEFT = 0;  dRIGHT = 0;  break;   // ok  Stop
+            case 0x00FD6897:  dLEFT = 1;  dRIGHT = 0; break;    // >   Turn right
+            case 0x00FD708F:  dLEFT = 1;  dRIGHT = -1; break;   // #   Round right
+            case 0x00FD9867:  dLEFT = -1; dRIGHT = -1; break;   // dw  Back
             // Melody play functions
             // remote control 1
-            case 0x00FD00FF:
-                digitalWrite(lf_head_led, HIGH); break;
-            //case 0x00FD00FF: melody_to_play = 1; break;
+            case 0x00FD00FF: digitalWrite(lf_head_led, HIGH); break;
             // remote control 2
-            case 0x00FD807F: digitalWrite(lf_head_led, LOW); break;
+            case 0x00FD807F: digitalWrite(lf_head_led, LOW); digitalWrite(rt_head_led, LOW); break;
+            // remote control 3
+            case 0x00FD40BF: digitalWrite(rt_head_led, HIGH); break;
             // Souds
             case 0x00FD20DF: // 4
                 phrase1(BUZZER);
@@ -172,11 +183,13 @@ void loop() {
                 phrase2(BUZZER);
                 noTone(BUZZER);
                 break;
+            // remote control 8
+            case 0x00FD906F: blink(); break;
             //case 0x00FD40BF: g_AllState = 1; g_modeSelect = 1;  ModeBEEP(g_modeSelect); break; //3   line walking mode  3
             //case 0x00FD20DF: g_AllState = 1; g_modeSelect = 3;  ModeBEEP(g_modeSelect); break; //4   tacking mode  4
             default: Serial.println(tCode, HEX); break;
         }
-
+        blink();
         // print() & println() can't handle printing long longs. (uint64_t)
         //serialPrintUint64(results.value, HEX);
         //Serial.println("");
